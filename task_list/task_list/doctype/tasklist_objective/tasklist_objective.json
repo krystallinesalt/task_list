@@ -11,8 +11,10 @@
   "objective",
   "column_break_team",
   "team",
+  "objective_type",
   "column_break_department",
   "department",
+  "status",
   "section_break_tasks",
   "tasks"
  ],
@@ -27,13 +29,19 @@
   },
   {
    "fieldname": "column_break_team",
-   "fieldtype": "Column Break"
+   "fieldtype": "Section Break"
   },
   {
    "fieldname": "team",
    "fieldtype": "Data",
    "label": "Team",
    "reqd": 1
+  },
+  {
+   "fieldname": "objective_type",
+   "fieldtype": "Link",
+   "label": "Objective Type",
+   "options": "Objective Type"
   },
   {
    "fieldname": "column_break_department",
@@ -44,6 +52,15 @@
    "fieldtype": "Data",
    "label": "Department",
    "reqd": 1
+  },
+  {
+   "default": "Open",
+   "fieldname": "status",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Status",
+   "options": "Open\nClosed",
+   "read_only": 1
   },
   {
    "fieldname": "section_break_tasks",
@@ -59,7 +76,7 @@
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-03 12:33:08.333174",
+ "modified": "2026-09-03 19:18:21.430108",
  "modified_by": "Administrator",
  "module": "Task List",
  "name": "Tasklist Objective",

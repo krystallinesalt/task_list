@@ -1,0 +1,42 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "autoname": "field:objective_type",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "objective_type"
+ ],
+ "fields": [
+  {
+   "fieldname": "objective_type",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Objective Type",
+   "reqd": 1,
+   "unique": 1
+  }
+ ],
+ "links": [],
+ "module": "Task List",
+ "name": "Objective Type",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  }
+ ],
+ "sort_field": "creation",
+ "sort_order": "DESC"
+}
