@@ -53,3 +53,8 @@ jspm_packages/
 
 # Aider AI Chat
 .aider*
+
+# Claude Code: track only the skills link and the shared settings
+.claude/*
+!.claude/skills
+!.claude/settings.json

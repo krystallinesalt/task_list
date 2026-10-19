@@ -8,7 +8,5 @@ def execute():
 	"""Backfill the new priority field without changing existing values."""
 	task = frappe.qb.DocType("Tasklist Objective Task")
 	(
-		frappe.qb.update(task)
-		.set(task.priority, "Low")
-		.where(task.priority.isnull() | (task.priority == ""))
+		frappe.qb.update(task).set(task.priority, "Low").where(task.priority.isnull() | (task.priority == ""))
 	).run()

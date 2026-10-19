@@ -9,5 +9,8 @@ frappe.ui.form.on("Staff", {
 });
 
 function set_full_name(frm) {
-	return frm.set_value("full_name", [frm.doc.first_name, frm.doc.last_name].filter(Boolean).join(" "));
+	return frm.set_value(
+		"full_name",
+		[frm.doc.first_name, frm.doc.last_name].filter(Boolean).join(" ")
+	);
 }
