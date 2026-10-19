@@ -86,7 +86,7 @@ app_license = "mit"
 # ------------
 
 # before_install = "task_list.install.before_install"
-# after_install = "task_list.install.after_install"
+after_install = "task_list.workspace.set_default_workspace_for_users"
 
 # Uninstallation
 # ------------
@@ -137,6 +137,12 @@ app_license = "mit"
 # Document Events
 # ---------------
 # Hook on document methods and events
+
+doc_events = {
+	"User": {
+		"after_insert": "task_list.workspace.set_default_workspace_for_user",
+	},
+}
 
 # doc_events = {
 # 	"*": {

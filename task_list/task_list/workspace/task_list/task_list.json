@@ -1,0 +1,45 @@
+{
+ "charts": [],
+ "content": "[{\"id\":\"task-list-header\",\"type\":\"header\",\"data\":{\"text\":\"Task List\",\"level\":1}},{\"id\":\"objectives-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objectives\",\"col\":4}},{\"id\":\"staff-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Staff\",\"col\":4}},{\"id\":\"objective-types-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objective Types\",\"col\":4}}]",
+ "custom_blocks": [],
+ "doctype": "Workspace",
+ "for_user": "",
+ "hide_custom": 1,
+ "icon": "list-checks",
+ "is_hidden": 0,
+ "label": "Task List",
+ "links": [],
+ "module": "Task List",
+ "name": "Task List",
+ "number_cards": [],
+ "parent_page": "",
+ "public": 1,
+ "quick_lists": [],
+ "roles": [],
+ "sequence_id": 0,
+ "shortcuts": [
+  {
+   "color": "Blue",
+   "doc_view": "List",
+   "label": "Objectives",
+   "link_to": "Tasklist Objective",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Staff",
+   "link_to": "Staff",
+   "type": "DocType"
+  },
+  {
+   "color": "Grey",
+   "doc_view": "List",
+   "label": "Objective Types",
+   "link_to": "Objective Type",
+   "type": "DocType"
+  }
+ ],
+ "title": "Task List",
+ "type": "Workspace"
+}

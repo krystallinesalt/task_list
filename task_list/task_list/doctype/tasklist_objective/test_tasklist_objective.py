@@ -4,46 +4,15 @@
 import frappe
 from frappe.tests import IntegrationTestCase
 
-# On IntegrationTestCase, the doctype test records and all
-# link-field test record dependencies are recursively loaded
-# Use these module variables to add/remove to/from that list
-EXTRA_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
-IGNORE_TEST_RECORD_DEPENDENCIES = []  # eg. ["User"]
+from task_list.task_list.tests.factories import build_objective, make_objective, make_staff, task_row
 
 
 class IntegrationTestTasklistObjective(IntegrationTestCase):
-	"""
-	Integration tests for TasklistObjective.
-	Use this class for testing interactions between multiple components.
-	"""
+	def setUp(self):
+		self.staff = make_staff()
 
 	def test_task_rows_require_mandatory_fields_and_default_status(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
-
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective with task rows",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"type": "Preventive",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Review the process and document improvements.",
-					}
-				],
-			}
-		).insert()
+		objective = make_objective([task_row(self.staff.name)])
 
 		self.assertEqual(objective.tasks[0].doctype, "Tasklist Objective Task")
 		self.assertEqual(objective.tasks[0].status, "Not done")
@@ -56,26 +25,12 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		self.assertEqual(priority_field.default, "Low")
 		self.assertEqual(priority_field.reqd, 1)
 
-		action_plan_field = meta.get_field("action_plan")
-		self.assertEqual(action_plan_field.reqd, 0)
-		self.assertEqual(action_plan_field.in_list_view, 1)
+		for fieldname in ("action_plan", "remarks"):
+			field = meta.get_field(fieldname)
+			self.assertEqual(field.reqd, 0, fieldname)
+			self.assertEqual(field.in_list_view, 1, fieldname)
 
-		remarks_field = meta.get_field("remarks")
-		self.assertEqual(remarks_field.reqd, 0)
-		self.assertEqual(remarks_field.in_list_view, 1)
-
-		task_values = {
-			"task": "Review process",
-			"priority": "Low",
-			"type": "Preventive",
-			"person_responsible": staff.name,
-			"start_date": "2026-09-03",
-			"end_date": "2026-09-03",
-			"action_plan": "Review the process and document improvements.",
-			"status": "Not done",
-		}
-
-		task_fieldnames = (
+		for fieldname in (
 			"task",
 			"priority",
 			"type",
@@ -83,51 +38,15 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 			"start_date",
 			"end_date",
 			"status",
-		)
-		for fieldname in task_fieldnames:
-			self.assertEqual(meta.get_field(fieldname).reqd, 1)
+		):
+			self.assertEqual(meta.get_field(fieldname).reqd, 1, fieldname)
 
 		for fieldname in ("task", "person_responsible", "start_date", "end_date"):
-			incomplete_task = task_values.copy()
-			incomplete_task.pop(fieldname)
-			incomplete_objective = frappe.get_doc(
-				{
-					"doctype": "Tasklist Objective",
-					"objective": f"Missing {fieldname}",
-					"team": "Operations",
-					"department": "Quality",
-					"tasks": [incomplete_task],
-				}
-			)
-
-			with self.assertRaises(frappe.MandatoryError):
-				incomplete_objective.insert()
+			with self.subTest(missing=fieldname), self.assertRaises(frappe.MandatoryError):
+				make_objective([task_row(self.staff.name, omit=(fieldname,))])
 
 	def test_action_plan_is_optional(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
-
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective without action plan",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-					}
-				],
-			}
-		).insert()
+		objective = make_objective([task_row(self.staff.name, omit=("type", "action_plan"))])
 
 		self.assertFalse(objective.tasks[0].action_plan)
 		self.assertFalse(objective.tasks[0].remarks)
@@ -144,83 +63,24 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		self.assertEqual(objective_type.name, "Quality Improvement")
 
 	def test_priority_patch_backfills_blank_values(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective priority migration",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Review the process and document improvements.",
-					}
-				],
-			}
-		).insert()
-
-		frappe.db.set_value("Tasklist Objective Task", objective.tasks[0].name, "priority", "")
-
 		from task_list.patches.add_priority_to_tasklist_objective_tasks import execute
 
-		execute()
-		self.assertEqual(
-			frappe.db.get_value("Tasklist Objective Task", objective.tasks[0].name, "priority"),
-			"Low",
-		)
+		objective = make_objective([task_row(self.staff.name)])
+		row_name = objective.tasks[0].name
+		frappe.db.set_value("Tasklist Objective Task", row_name, "priority", "")
 
-		execute()
-		self.assertEqual(
-			frappe.db.get_value("Tasklist Objective Task", objective.tasks[0].name, "priority"),
-			"Low",
-		)
+		# The patch is idempotent: a rerun keeps the backfilled value.
+		for _run in range(2):
+			execute()
+			self.assertEqual(frappe.db.get_value("Tasklist Objective Task", row_name, "priority"), "Low")
 
 	def test_status_opens_by_default_and_closes_only_when_all_tasks_are_done(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
-
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective status tracking",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"type": "Preventive",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Review the process and document improvements.",
-					},
-					{
-						"task": "Approve changes",
-						"type": "Corrective",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Approve the documented process improvements.",
-					},
-				],
-			}
-		).insert()
-
+		objective = make_objective(
+			[
+				task_row(self.staff.name),
+				task_row(self.staff.name, task="Approve changes", type="Corrective"),
+			]
+		)
 		self.assertEqual(objective.status, "Open")
 
 		objective.tasks[0].status = "Done"
@@ -235,66 +95,33 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		objective.save()
 		self.assertEqual(objective.status, "Open")
 
-	def test_end_date_cannot_be_before_start_date(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
+	def test_objective_without_tasks_is_open(self):
+		self.assertEqual(make_objective().status, "Open")
 
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective with invalid task dates",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"type": "Preventive",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-02",
-						"action_plan": "Review the process and document improvements.",
-						"status": "Not done",
-					}
-				],
-			}
+	def test_status_is_derived_on_the_server_not_taken_from_the_client(self):
+		objective = make_objective([task_row(self.staff.name)], status="Closed")
+
+		self.assertEqual(objective.status, "Open")
+
+	def test_end_date_cannot_be_before_start_date(self):
+		objective = build_objective(
+			[task_row(self.staff.name, start_date="2026-09-03", end_date="2026-09-02")]
 		)
 
 		with self.assertRaises(frappe.ValidationError):
 			objective.insert()
 
-	def test_end_date_can_be_after_start_date(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
+	def test_end_date_can_equal_start_date(self):
+		objective = make_objective(
+			[task_row(self.staff.name, start_date="2026-09-03", end_date="2026-09-03")]
+		)
 
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective with valid task dates",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"type": "Preventive",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-04",
-						"action_plan": "Review the process and document improvements.",
-						"status": "Not done",
-					}
-				],
-			}
-		).insert()
+		self.assertEqual(objective.tasks[0].end_date, "2026-09-03")
+
+	def test_end_date_can_be_after_start_date(self):
+		objective = make_objective(
+			[task_row(self.staff.name, start_date="2026-09-03", end_date="2026-09-04")]
+		)
 
 		self.assertEqual(objective.tasks[0].end_date, "2026-09-04")
 
@@ -305,13 +132,6 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		self.assertEqual(field.options, "Staff")
 
 	def test_type_includes_corrective_and_preventive(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
 		type_field = frappe.get_meta("Tasklist Objective Task").get_field("type")
 
 		self.assertEqual(type_field.fieldtype, "Select")
@@ -319,53 +139,11 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		self.assertIn("Preventive", type_field.options.splitlines())
 		self.assertEqual(type_field.default, "Corrective")
 
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective with invalid type",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"type": "Other",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Review the process and document improvements.",
-					}
-				],
-			}
-		)
-
+		objective = build_objective([task_row(self.staff.name, type="Other")])
 		with self.assertRaises(frappe.ValidationError):
 			objective.insert()
 
 	def test_type_defaults_to_corrective(self):
-		staff = frappe.get_doc(
-			{
-				"doctype": "Staff",
-				"first_name": "Quality",
-				"last_name": "Manager",
-			}
-		).insert()
-
-		objective = frappe.get_doc(
-			{
-				"doctype": "Tasklist Objective",
-				"objective": "Objective with default type",
-				"team": "Operations",
-				"department": "Quality",
-				"tasks": [
-					{
-						"task": "Review process",
-						"person_responsible": staff.name,
-						"start_date": "2026-09-03",
-						"end_date": "2026-09-03",
-						"action_plan": "Review the process and document improvements.",
-					}
-				],
-			}
-		).insert()
+		objective = make_objective([task_row(self.staff.name, omit=("type",))])
 
 		self.assertEqual(objective.tasks[0].type, "Corrective")

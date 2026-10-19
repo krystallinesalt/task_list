@@ -98,5 +98,7 @@ jobs:
 
       - name: Run server tests
         working-directory: ${{ env.BENCH_ROOT }}
-        run: bench --site "$SITE" run-tests --app task_list
+        run: apps/task_list/scripts/verify.sh server
+        env:
+          TEST_SITE: ${{ env.SITE }}
 

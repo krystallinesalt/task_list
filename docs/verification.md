@@ -50,13 +50,16 @@ the last field.
 Match verification to the risk of the change. Commands run from the bench
 directory unless stated otherwise.
 
-| Change                                                        | Required gates                                    | Command                                                                                                                  |
-| ------------------------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
-| Docs, agent guidance or tests only                            | Diff check, pre-commit (includes `sync-skills.sh check`) | `git diff --check` and `pre-commit run --all-files` (app directory)                                                |
-| Server logic, permissions, hooks or shared utilities          | Lint, focused module, then app suite              | `bench --site task-list-test.localhost run-tests --module <module>`, then `--app task_list`                              |
-| Patches, schema, dependencies or installation (fresh install) | Lint, migrate test site, app suite, fresh install | `bench --site task-list-test.localhost migrate`, then `run-tests --app task_list`; CI `Server` job for the fresh install |
-| Client, Desk metadata, reports or workspaces                  | Lint, JSON validation, migrate, affected tests    | `pre-commit run --all-files`, `bench --site task-list-test.localhost migrate`, affected test modules                    |
-| Workflows or CI bootstrap                                     | Lint, concurrency test, CI run on the PR          | `python3 scripts/test_workflow_concurrency.py .github/workflows/ci.yml .github/workflows/linter.yml`, then PR checks     |
+`scripts/verify.sh` runs the shared stages from any directory; CI runs the
+same `lint` and `server` stages.
+
+| Change                                                        | Required gates                                    | Command                                                                                      |
+| ------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| Docs, agent guidance or tests only                            | Diff check and lint stage                         | `git diff --check` (app directory), then `apps/task_list/scripts/verify.sh lint`             |
+| Server logic, permissions, hooks or shared utilities          | Lint, focused module, then app suite              | `bench --site task-list-test.localhost run-tests --module <module>`, then `verify.sh pre-push` |
+| Patches, schema, dependencies or installation (fresh install) | Lint, migrate test site, app suite, fresh install | `verify.sh pre-push`; CI `Server` job for the fresh install                                  |
+| Client, Desk metadata, reports or workspaces                  | Lint, migrate, affected tests                     | `verify.sh pre-push`; `node --check` on changed plain JavaScript files                       |
+| Workflows or CI bootstrap                                     | Lint (includes the concurrency test), CI on the PR | `verify.sh lint`, then PR checks                                                             |
 
 ## Completion and failure handling
 

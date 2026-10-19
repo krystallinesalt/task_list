@@ -5,6 +5,20 @@ is generated from [frappe-agent-kit](https://github.com/dee-pat/frappe-agent-kit
 by `scripts/sync-skills.sh`; never edit it here. Change the kit, bump the pin
 in `skills.lock`, and run `scripts/sync-skills.sh sync`.
 
+## Read by task
+
+Read the row for your task; the rules below always apply. Code spans are skills.
+
+| Task | Read first | Then, only if |
+| --- | --- | --- |
+| Any code change | [Definition of done](docs/verification.md#definition-of-done) | Locating tests: [rule index](docs/testing-matrix.md#rule-index); a relationship or derived value changes: [domain model](docs/domain-model.md#doctype-relationships) |
+| Business rule (status, dates, defaults) | [Derived values](docs/domain-model.md#derived-values); [decision index](docs/decisions/README.md#index) | Changing a rule: [when to write a record](docs/decisions/README.md#when-to-write-one) |
+| DocType, field or patch change | `frappe-migration`; [DocType relationships](docs/domain-model.md#doctype-relationships) | Patch or install hook: [required gates](docs/verification.md#required-gates) |
+| Failing test or CI job | `frappe-debugging`; [failure handling](docs/verification.md#completion-and-failure-handling) | |
+| Running gates and reporting done | [Required gates](docs/verification.md#required-gates); [evidence](docs/verification.md#verification-evidence) | |
+| Reviewing a PR or diff | `frappe-pr-review`; [review output contract](docs/code-review.md#review-output-contract) | Review threads: `pr-review-threads` |
+| Unsettled plan or business rule | `grilling` | |
+
 ## Working agreement
 
 - Inspect the current worktree and nearby implementation before editing. Keep
@@ -19,7 +33,8 @@ in `skills.lock`, and run `scripts/sync-skills.sh sync`.
   `scripts/test_deny_rules.py` checks they match.
 - Keep changes small and focused. Put genuinely shared server logic in a
   deliberate utility module; keep DocType controllers focused.
-- Use Frappe v16.31.0-compatible APIs and Python 3.14 conventions.
+- Use APIs of the Frappe tag pinned as `FRAPPE_VERSION` in
+  `.github/workflows/ci.yml`, and Python 3.14 conventions.
 
 <!-- BEGIN synced-rules: dee-pat/frappe-agent-kit/rules/frappe.md@cdd586c8de2461d3b6f0660021de52164ddddf16 -->
 ## Shared Frappe rules
@@ -81,8 +96,17 @@ pinned upstream skills, some of which read records with `get_all`/`get_list`.
 - The Frappe module package is `task_list/task_list/`.
 - DocTypes belong below `task_list/task_list/doctype/` and should be created
   through Frappe developer-mode workflows.
-- The interactive site is `task_list.localhost`; use a separate test site for
-  state-changing tests.
+- Shared test record builders live in `task_list/task_list/tests/factories.py`;
+  build objectives, staff and task rows through them.
+- Keep [docs/domain-model.md](docs/domain-model.md) and
+  [docs/testing-matrix.md](docs/testing-matrix.md) in step with any change to a
+  DocType, `Link`/`Table` field, derived value or rule-to-test mapping.
+
+## Sites
+
+- `task_list.localhost` is for interactive work and `task-list-test.localhost`
+  for automated tests. Reuse the test site for gates; never recreate, drop or
+  restore either without approval.
 
 ## Frappe workflow
 
@@ -98,20 +122,28 @@ pinned upstream skills, some of which read records with `get_all`/`get_list`.
 - Data transformations must be idempotent patches under `task_list/patches/`,
   registered in `patches.txt`.
 
-## Verification
+## Commands
 
-Read [docs/verification.md](docs/verification.md) for the definition of done,
-required gates and the evidence to record before committing or reporting
-completion.
+Run from the bench root. `TEST_SITE` overrides the default test site.
 
-- Python changes: run the focused Frappe test module, then the app suite when
-  shared behavior is affected.
-- DocType or migration changes: migrate the test site first, then run affected
-  tests and the app suite.
-- JavaScript changes: run configured ESLint/Prettier checks and `node --check`
-  on changed plain JavaScript files. Validate JSON metadata.
-- Browser changes: use the local Playwright guidance and run the focused flow,
-  then the full suite when shared setup or navigation changes.
-- Documentation or agent-guidance-only changes: run `git diff --check`,
-  `scripts/sync-skills.sh check`, and validate changed paths and links. Report
-  commands that were not run.
+```bash
+apps/task_list/scripts/verify.sh lint      # pre-commit, Frappe Semgrep, repository rule tests
+apps/task_list/scripts/verify.sh server    # migrate test site + full server suite
+apps/task_list/scripts/verify.sh pre-push  # lint + server
+bench --site task-list-test.localhost run-tests --module task_list.task_list.doctype.tasklist_objective.test_tasklist_objective
+```
+
+CI runs the same `lint` and `server` stages. [docs/verification.md](docs/verification.md)
+maps each kind of change to its required gates and the evidence to record.
+
+## Review guidelines
+
+- Every review follows the
+  [review output contract](docs/code-review.md#review-output-contract): a
+  merge-readiness score from 0/5 to 5/5, the reviewed revision, verification
+  evidence and one ready-to-copy fix prompt for the actionable findings. The
+  contract wins over the `frappe-pr-review` procedure on conflict.
+- Review changed controllers, metadata, patches, hooks and Desk scripts
+  together, and check them against the
+  [domain model](docs/domain-model.md) and
+  [decision records](docs/decisions/README.md).
