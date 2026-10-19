@@ -1,5 +1,5 @@
 # Vendored directories and byte-identical frappe-agent-kit copies stay unformatted.
-exclude: 'node_modules|.git|^semgrep/(frappe|kit)/|^scripts/test_(deny_rules|workflow_concurrency)\.py$'
+exclude: 'node_modules|^\.git/|^semgrep/(frappe|kit)/|^scripts/test_(deny_rules|workflow_concurrency)\.py$'
 default_stages: [pre-commit]
 fail_fast: false
 
