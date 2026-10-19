@@ -1,33 +1,74 @@
-### Task List
+# Task List
 
-A clean task list app for Frappe.
+Task List is a Frappe Framework v16 app for tracking objectives and the tasks
+that deliver them. Each objective holds task rows with an owner, priority,
+type, date range and status; the objective closes itself when every task is
+done.
 
-### Installation
+## What the app does
 
-You can install this app using the [bench](https://github.com/frappe/bench) CLI:
+| Record | Purpose |
+| --- | --- |
+| Tasklist Objective | An objective with its team, department, type and task rows. Its status is `Open` until every task is `Done`, then `Closed`. |
+| Tasklist Objective Task | A task row: priority (Mandatory, High, Medium, Low), type (Corrective, Preventive, ...), person responsible, start and end dates, action plan, remarks and status. An end date cannot precede the start date. |
+| Staff | People who can be responsible for a task. |
+| Objective Type | Categories for objectives. |
+
+On the objective form, task status cells turn green when done and pink when
+overdue, and priority cells are coloured by priority.
+
+Rules, validations and permissions are enforced on the server. See
+[docs/domain-model.md](docs/domain-model.md) for relationships and derived
+values, and [docs/decisions/](docs/decisions/README.md) for the business
+decisions behind them.
+
+## Installation
 
 ```bash
 cd $PATH_TO_YOUR_BENCH
 bench get-app $URL_OF_THIS_REPO --branch main
-bench install-app task_list
+bench --site <site-name> install-app task_list
 ```
 
-### Contributing
+## Development
 
-This app uses `pre-commit` for code formatting and linting. Please [install pre-commit](https://pre-commit.com/#installation) and enable it for this repository:
+This app uses `pre-commit` (ruff, eslint, prettier and repository checks).
+Enable it from the app directory:
 
 ```bash
-cd apps/task_list
 pre-commit install
 ```
 
-Pre-commit is configured to use the following tools for checking and formatting your code:
+Run the shared gates from the bench directory; GitHub Actions runs the same
+stages:
 
-- ruff
-- eslint
-- prettier
-- pyupgrade
+```bash
+apps/task_list/scripts/verify.sh pre-push
+```
 
-### License
+`lint` and `server` run the stages separately.
+[docs/verification.md](docs/verification.md) maps each kind of change to its
+required gates, and [docs/testing-matrix.md](docs/testing-matrix.md) maps each
+rule to its tests.
 
-mit
+### Agent skills and reviews
+
+Contributor and agent rules are in [AGENTS.md](AGENTS.md) (`CLAUDE.md` is a
+symlink to it). Skills live in `.agents/skills/`; upstream skills, the shared
+Frappe rules block and the Semgrep rules are pinned in `skills.lock` and
+vendored from [frappe-agent-kit](https://github.com/dee-pat/frappe-agent-kit):
+
+```bash
+scripts/sync-skills.sh check
+```
+
+Reviews follow the output contract in [docs/code-review.md](docs/code-review.md).
+To list only the Semgrep findings a branch introduces:
+
+```bash
+scripts/semgrep-pr.sh main
+```
+
+## License
+
+MIT. See [license.txt](license.txt).

@@ -36,8 +36,9 @@ jobs:
         # Keep in step with [tool.bench.dev-dependencies] in pyproject.toml.
         run: pip install 'pre-commit>=4,<5' 'semgrep==1.172.0'
 
-      - name: Run pre-commit
-        run: pre-commit run --all-files --show-diff-on-failure
+      - name: Run shared lint gate
+        # The same stage agents and contributors run locally.
+        run: ./scripts/verify.sh lint
 
       - name: Report new Frappe Semgrep findings
         # Report only: lists the findings the PR introduces and exits 0.

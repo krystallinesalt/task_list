@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
 from frappe.utils import getdate
 
@@ -14,7 +15,7 @@ class TasklistObjective(Document):
 		for row in self.get("tasks") or []:
 			if row.start_date and row.end_date and getdate(row.end_date) < getdate(row.start_date):
 				frappe.throw(
-					f"End Date cannot be before Start Date for task row {row.idx}.",
+					_("End Date cannot be before Start Date for task row {0}.").format(row.idx),
 					frappe.ValidationError,
 				)
 
