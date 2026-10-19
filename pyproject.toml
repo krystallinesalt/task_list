@@ -20,7 +20,8 @@ frappe = ">=16.0.0-dev,<17.0.0"
 
 # These dependencies are only installed when developer mode is enabled
 [tool.bench.dev-dependencies]
-# package_name = "~=1.1.0"
+pre-commit = ">=4,<5"
+semgrep = "==1.172.0"
 
 # These apt dependencies will be installed from Ubuntu repositories when you host your app on Frappe Cloud
 [deploy.dependencies.apt]
@@ -39,6 +40,7 @@ select = [
     "UP",
     "B",
     "RUF",
+    "C90",
 ]
 ignore = [
     "B017", # assertRaises(Exception) - should be more specific
@@ -61,6 +63,9 @@ ignore = [
     "UP040", # Use type aliases instead of type annotations
 ]
 typing-modules = ["frappe.types.DF"]
+
+[tool.ruff.lint.mccabe]
+max-complexity = 15
 
 [tool.ruff.format]
 quote-style = "double"

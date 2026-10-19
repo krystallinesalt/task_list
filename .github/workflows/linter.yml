@@ -1,0 +1,48 @@
+name: Linters
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  # Pull requests cancel their superseded runs; push and manual runs each keep
+  # their own group and run to completion.
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  linter:
+    name: Frappe Linter
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          # semgrep-pr.sh needs the merge base with the PR's base branch.
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+          cache: pip
+
+      - name: Install lint tools
+        # Keep in step with [tool.bench.dev-dependencies] in pyproject.toml.
+        run: pip install 'pre-commit>=4,<5' 'semgrep==1.172.0'
+
+      - name: Run pre-commit
+        run: pre-commit run --all-files --show-diff-on-failure
+
+      - name: Report new Frappe Semgrep findings
+        # Report only: lists the findings the PR introduces and exits 0.
+        if: github.event_name == 'pull_request'
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: ./scripts/semgrep-pr.sh "$BASE_SHA" "$HEAD_SHA"
