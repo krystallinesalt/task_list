@@ -67,6 +67,7 @@ function show_objective_changes(frm) {
 		.require([
 			"/assets/task_list/js/objective_history_model.js",
 			"/assets/task_list/js/objective_changes.js",
+			"/assets/task_list/js/objective_history_sheet.js",
 			"/assets/task_list/css/objective_changes.css",
 		])
 		.then(() => {
@@ -76,8 +77,11 @@ function show_objective_changes(frm) {
 				view?.docname === frm.docname &&
 				view.modified === String(frm.doc.modified) &&
 				!view.loading
-			)
+			) {
+				view.select(view.index);
 				return;
+			}
+			view?.clear_sheet();
 			frm.task_list_changes_view = new task_list.ObjectiveChanges(frm, target);
 			return frm.task_list_changes_view.load(token);
 		})
