@@ -35,3 +35,5 @@ Run lint, server suite and plain JS syntax checks; migrate test and dev sites.
 This customization depends on the installed v16 footer container, so recheck
 browser behavior when upgrading Frappe. No data migration or rollback patch is
 needed: reverting layout/script changes and migrating restores the native footer.
+
+Implementation: [PR #5](https://github.com/krystallinesalt/task_list/pull/5).

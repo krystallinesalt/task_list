@@ -44,3 +44,5 @@ Migrate test and development sites, then use workspace shortcuts. Link Staff
 accounts explicitly as needed. No new roles, reminders, dashboard, task editing
 surface or change to objective completion rules in this slice. Follow-ups:
 role design, dashboard and a maintained browser suite.
+
+Implementation: [PR #5](https://github.com/krystallinesalt/task_list/pull/5).

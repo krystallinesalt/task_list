@@ -7,7 +7,8 @@ permissions retained. See [spec](../specs/task-views.md).
 Implemented: additive Staff field, permission-scoped Script Reports, workspace
 shortcuts, empty-state guidance, documentation and server regression coverage.
 Development and test sites migrated; interactive field and report wiring checked.
-Release validation still requires fresh-install CI; commit, push and a PR are now authorized. Existing Staff account links are left for explicit administrator setup.
+Existing Staff account links are left for explicit administrator setup.
 
-Review follow-up: preserve native activity deep links and maintain an isolated
-Playwright regression gate. Final publication and exact-head CI are pending.
+Implemented and submitted in [PR #5](https://github.com/krystallinesalt/task_list/pull/5).
+Review follow-up includes preserved native activity deep links and the isolated
+Playwright regression gate. Release remains subject to required PR checks.
