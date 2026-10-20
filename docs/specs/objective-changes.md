@@ -61,3 +61,5 @@ server and browser gates and migrate the interactive site.
 No new dependency or data patch. Existing saved data and APIs stay compatible.
 Fresh-install CI remains a release gate when publication is authorized. Future
 work may add date/task filtering; rollback is explicitly excluded.
+
+Implementation: [PR #6](https://github.com/krystallinesalt/task_list/pull/6).

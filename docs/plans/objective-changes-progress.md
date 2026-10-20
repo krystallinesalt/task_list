@@ -15,6 +15,6 @@ expandable secondary fields are removed. Child-cell colours remain consistent
 with parent fields; browser assertions cover columns, widths, scrolling and colours.
 
 Implementation and review fixes are complete, including native multiline-note
-formatting and removal of the redundant Change column. Publication is authorized
-and in progress; CI remains pending. No rollback, snapshot
+formatting and removal of the redundant Change column. Published as [PR #6](https://github.com/krystallinesalt/task_list/pull/6);
+CI remains pending. No rollback, snapshot
 storage or Frappe core changes were introduced.
