@@ -82,6 +82,8 @@ System Manager login, and synthetic objective/comment records. It starts an
 explicitly selected test-site web server, runs Playwright, then stops the server
 and removes its fixtures on success or failure. It never reads site passwords.
 The test site must already be migrated with tests enabled and Redis available.
+The test-only bootstrap marks Frappe setup complete so fresh CI sites can enter
+Desk instead of the setup wizard.
 
 Client activity changes require this gate in addition to `verify.sh pre-push`.
 The CI Server job installs Chromium and runs the same gate after server tests.

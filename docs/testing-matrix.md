@@ -55,3 +55,6 @@ history, tab switching, new objectives and repeat refreshes.
 notification anchors on fresh navigation/reload, comments and history after
 save, tab visibility and a single footer after repeated refreshes. The isolated
 `scripts/verify-ui.sh` gate supplies synthetic fixtures and an ephemeral account.
+
+`tests/test_browser_seed.py` covers incomplete setup on fresh sites: browser
+bootstrap must mark the Frappe app ready for Desk navigation.

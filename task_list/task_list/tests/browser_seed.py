@@ -4,6 +4,7 @@
 import os
 
 import frappe
+from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
 
 from task_list.task_list.tests.factories import make_objective
 
@@ -14,6 +15,9 @@ OBJECTIVE = "_Test Task List Activity Browser"
 def setup():
 	check_test_site()
 	cleanup()
+	# Fresh CI sites otherwise redirect every Desk route to the setup wizard.
+	enable_setup_wizard_complete("frappe")
+	frappe.clear_cache()
 	# Administrator owns synthetic setup, not an application permission bypass.
 	frappe.get_doc(
 		{

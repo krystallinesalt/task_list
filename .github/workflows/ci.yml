@@ -109,3 +109,11 @@ jobs:
           yarn --cwd apps/task_list install --frozen-lockfile
           yarn --cwd apps/task_list playwright install --with-deps chromium
           apps/task_list/scripts/verify-ui.sh
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-list-browser-failures
+          path: ${{ env.BENCH_ROOT }}/apps/task_list/test-results/
+          if-no-files-found: ignore
