@@ -32,6 +32,10 @@ jobs:
           python-version: '3.14'
           cache: pip
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+
       - name: Install lint tools
         # Keep in step with [tool.bench.dev-dependencies] in pyproject.toml.
         run: pip install 'pre-commit>=4,<5' 'semgrep==1.172.0'

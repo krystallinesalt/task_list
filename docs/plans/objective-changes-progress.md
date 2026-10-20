@@ -1,0 +1,20 @@
+# Objective Changes progress
+
+Approved: read-only Changes tab using native Frappe history, a Details-style
+objective/task preview and a chronological history slider. No rollback.
+See [spec](../specs/objective-changes.md).
+
+Status: implemented locally on `codex/objective-changes`. The Changes tab uses a
+permission-scoped history projection, a read-only replay model and a chronological
+slider. Objective fields and all nine task columns show changes inline. Older history loads without moving
+the selected save, and unavailable history has explicit guidance.
+
+Presentation correction complete: all task columns appear in Details order
+using native grid widths with horizontal scrolling. The compact table and
+expandable secondary fields are removed. Child-cell colours remain consistent
+with parent fields; browser assertions cover columns, widths, scrolling and colours.
+
+Implementation and review fixes are complete, including native multiline-note
+formatting and removal of the redundant Change column. Published as [PR #6](https://github.com/krystallinesalt/task_list/pull/6);
+Verification evidence is maintained in the PR. No rollback, snapshot
+storage or Frappe core changes were introduced.

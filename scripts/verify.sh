@@ -76,6 +76,7 @@ run_lint() {
 	pre_commit="$(find_tool pre-commit)"
 	"${pre_commit}" run --all-files --show-diff-on-failure
 	run_semgrep
+	node --test "${APP_ROOT}/scripts/test_objective_history_model.cjs"
 
 	python3 "${APP_ROOT}/scripts/test_doc_links.py"
 	python3 "${APP_ROOT}/scripts/test_deny_rules.py"

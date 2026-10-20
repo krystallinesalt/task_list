@@ -48,6 +48,11 @@ pre-commit install
 
 Objective forms separate operational **Details** from native comments/history in
 **Activity**. Copied comment links and notifications open the Activity target.
+The read-only **Changes** tab uses a history slider and earlier/later controls to
+show each recorded save in a Details-style objective/task layout, highlighting
+edited fields and added/removed tasks. It uses retained native history, not
+snapshots; unrecorded changes and exact past row order cannot be recovered.
+There is no rollback or editing from this view.
 
 Run the shared gates from the bench directory; GitHub Actions runs the same
 stages:

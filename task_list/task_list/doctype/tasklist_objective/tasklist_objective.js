@@ -1,5 +1,6 @@
 // Copyright (c) 2026, Deepak Patel and contributors
 // For license information, please see license.txt
+/* global task_list */
 
 const STATUS_BACKGROUND_COLORS = {
 	done: "var(--green-100)",
@@ -27,10 +28,15 @@ frappe.ui.form.on("Tasklist Objective", {
 		});
 	},
 
+	on_tab_change(frm) {
+		return show_objective_changes(frm);
+	},
+
 	refresh(frm) {
 		move_activity_to_tab(frm);
 		restore_activity_anchor(frm);
 		frm.fields_dict.tasks?.grid?.grid_rows?.forEach(set_task_row_backgrounds);
+		return show_objective_changes(frm);
 	},
 });
 
@@ -47,6 +53,44 @@ frappe.ui.form.on("Tasklist Objective Task", {
 		set_priority_background_for_row(frm, cdn);
 	},
 });
+
+function show_objective_changes(frm) {
+	const token = (frm.task_list_changes_token || 0) + 1;
+	frm.task_list_changes_token = token;
+	const target = frm.fields_dict.changes_content?.$wrapper;
+	if (!target?.length || frm.get_active_tab()?.df.fieldname !== "changes_tab") return;
+	if (frm.is_new()) {
+		target.empty().text(__("Save this objective to start recording changes."));
+		return;
+	}
+	return frappe
+		.require([
+			"/assets/task_list/js/objective_history_model.js",
+			"/assets/task_list/js/objective_changes.js",
+			"/assets/task_list/css/objective_changes.css",
+		])
+		.then(() => {
+			if (token !== frm.task_list_changes_token) return;
+			const view = frm.task_list_changes_view;
+			if (
+				view?.docname === frm.docname &&
+				view.modified === String(frm.doc.modified) &&
+				!view.loading
+			)
+				return;
+			frm.task_list_changes_view = new task_list.ObjectiveChanges(frm, target);
+			return frm.task_list_changes_view.load(token);
+		})
+		.catch(() => {
+			if (token !== frm.task_list_changes_token) return;
+			target.empty().text(__("History components could not be loaded."));
+			$("<button>")
+				.addClass("btn btn-default btn-sm")
+				.text(__("Retry"))
+				.on("click", () => show_objective_changes(frm))
+				.appendTo(target);
+		});
+}
 
 function move_activity_to_tab(frm) {
 	const target = frm.fields_dict.activity_content?.$wrapper;

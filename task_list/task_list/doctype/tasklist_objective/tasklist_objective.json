@@ -18,6 +18,8 @@
   "status",
   "section_break_tasks",
   "tasks",
+  "changes_tab",
+  "changes_content",
   "activity_tab",
   "activity_content"
  ],
@@ -79,6 +81,15 @@
    "fieldtype": "Table",
    "label": "Tasks",
    "options": "Tasklist Objective Task"
+  },
+  {
+   "fieldname": "changes_tab",
+   "fieldtype": "Tab Break",
+   "label": "Changes"
+  },
+  {
+   "fieldname": "changes_content",
+   "fieldtype": "HTML"
   },
   {
    "fieldname": "activity_tab",
