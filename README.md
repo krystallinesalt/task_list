@@ -17,6 +17,13 @@ done.
 On the objective form, task status cells turn green when done and pink when
 overdue, and priority cells are coloured by priority.
 
+The workspace also provides **My Tasks** (your unfinished assignments across
+objectives) and **Overdue Tasks** (all unfinished tasks due before today across
+objectives you can read). To use My Tasks, set the optional **User** field on
+your Staff record to your login account. Existing permissions still apply;
+linking Staff to a User does not grant access. Open an objective from either
+report to update its tasks.
+
 Rules, validations and permissions are enforced on the server. See
 [docs/domain-model.md](docs/domain-model.md) for relationships and derived
 values, and [docs/decisions/](docs/decisions/README.md) for the business
@@ -39,6 +46,9 @@ Enable it from the app directory:
 pre-commit install
 ```
 
+Objective forms separate operational **Details** from native comments/history in
+**Activity**. Copied comment links and notifications open the Activity target.
+
 Run the shared gates from the bench directory; GitHub Actions runs the same
 stages:
 
@@ -47,6 +57,8 @@ apps/task_list/scripts/verify.sh pre-push
 ```
 
 `lint` and `server` run the stages separately.
+`apps/task_list/scripts/verify-ui.sh` runs the isolated Desk browser regressions;
+see [browser setup](docs/verification.md#desk-browser-gate).
 [docs/verification.md](docs/verification.md) maps each kind of change to its
 required gates, and [docs/testing-matrix.md](docs/testing-matrix.md) maps each
 rule to its tests.

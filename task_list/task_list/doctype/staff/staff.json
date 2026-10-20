@@ -8,7 +8,8 @@
  "field_order": [
   "first_name",
   "last_name",
-  "full_name"
+  "full_name",
+  "user"
  ],
  "fields": [
   {
@@ -31,6 +32,13 @@
    "in_list_view": 1,
    "label": "Full Name",
    "read_only": 1
+  },
+  {
+   "fieldname": "user",
+   "fieldtype": "Link",
+   "label": "User",
+   "options": "User",
+   "description": "Optional login account used by My Tasks. Linking an account does not grant access to objectives."
   }
  ],
  "links": [],

@@ -14,6 +14,13 @@ const PRIORITY_BACKGROUND_COLORS = {
 };
 
 frappe.ui.form.on("Tasklist Objective", {
+	setup(frm) {
+		// Capture before Frappe selects a tab, including navigation to cached objectives.
+		$(frm.wrapper).on("refresh-fields.task-list-activity", () => {
+			frm.task_list_activity_anchor = window.location.hash;
+		});
+	},
+
 	onload(frm) {
 		$(frm.wrapper).on("grid-row-render.task-list-colors", (event, grid_row) => {
 			set_task_row_backgrounds(grid_row);
@@ -21,6 +28,8 @@ frappe.ui.form.on("Tasklist Objective", {
 	},
 
 	refresh(frm) {
+		move_activity_to_tab(frm);
+		restore_activity_anchor(frm);
 		frm.fields_dict.tasks?.grid?.grid_rows?.forEach(set_task_row_backgrounds);
 	},
 });
@@ -38,6 +47,33 @@ frappe.ui.form.on("Tasklist Objective Task", {
 		set_priority_background_for_row(frm, cdn);
 	},
 });
+
+function move_activity_to_tab(frm) {
+	const target = frm.fields_dict.activity_content?.$wrapper;
+	if (!target?.length || !frm.footer?.parent) return;
+
+	// Move the live container so Frappe retains comment handlers and refresh ownership.
+	frm.footer.parent.appendTo(target);
+	target.find(".task-list-activity-hint").remove();
+	if (frm.is_new()) {
+		$("<p>")
+			.addClass("task-list-activity-hint text-muted")
+			.text(__("Save this objective to add comments and view its history."))
+			.appendTo(target);
+	}
+}
+
+function restore_activity_anchor(frm) {
+	const anchor = frm.task_list_activity_anchor || window.location.hash;
+	delete frm.task_list_activity_anchor;
+	if (!/^#(comment|communication)-/.test(anchor) || !frm.footer) return;
+
+	frm.layout.select_tab("activity_tab");
+	const url = new URL(window.location.href);
+	url.hash = anchor;
+	history.replaceState(null, null, url);
+	// The native post-render scroll handler now finds the visible timeline entry.
+}
 
 function set_task_row_backgrounds(grid_row) {
 	set_status_background(grid_row);

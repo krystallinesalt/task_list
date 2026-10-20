@@ -18,7 +18,7 @@ class IntegrationTestTaskListWorkspace(IntegrationTestCase):
 		self.assertFalse(workspace.for_user)
 		self.assertSetEqual(
 			{shortcut.link_to for shortcut in workspace.shortcuts},
-			{"Tasklist Objective", "Staff", "Objective Type"},
+			{"Tasklist Objective", "Staff", "Objective Type", "My Tasks", "Overdue Tasks"},
 		)
 
 	def test_new_system_user_gets_task_list_as_default_workspace(self):

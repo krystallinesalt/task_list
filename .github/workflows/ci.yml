@@ -1,5 +1,5 @@
-# From frappe-agent-kit templates/ci.yml; owned by this app. The template's UI
-# job is left out until the app has a Playwright suite.
+# From frappe-agent-kit templates/ci.yml; owned by this app.
+# The Server job includes isolated Desk browser regressions.
 name: CI
 
 on:
@@ -102,3 +102,18 @@ jobs:
         env:
           TEST_SITE: ${{ env.SITE }}
 
+
+      - name: Run Desk browser regressions
+        working-directory: ${{ env.BENCH_ROOT }}
+        run: |
+          yarn --cwd apps/task_list install --frozen-lockfile
+          yarn --cwd apps/task_list playwright install --with-deps chromium
+          apps/task_list/scripts/verify-ui.sh
+
+      - name: Upload browser failure artifacts
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: task-list-browser-failures
+          path: ${{ env.BENCH_ROOT }}/apps/task_list/test-results/
+          if-no-files-found: ignore
