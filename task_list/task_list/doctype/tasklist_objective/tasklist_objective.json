@@ -8,6 +8,7 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "details_tab",
   "objective",
   "column_break_team",
   "team",
@@ -16,9 +17,16 @@
   "department",
   "status",
   "section_break_tasks",
-  "tasks"
+  "tasks",
+  "activity_tab",
+  "activity_content"
  ],
  "fields": [
+  {
+   "fieldname": "details_tab",
+   "fieldtype": "Tab Break",
+   "label": "Details"
+  },
   {
    "fieldname": "objective",
    "fieldtype": "Data",
@@ -71,6 +79,15 @@
    "fieldtype": "Table",
    "label": "Tasks",
    "options": "Tasklist Objective Task"
+  },
+  {
+   "fieldname": "activity_tab",
+   "fieldtype": "Tab Break",
+   "label": "Activity"
+  },
+  {
+   "fieldname": "activity_content",
+   "fieldtype": "HTML"
   }
  ],
  "grid_page_length": 50,

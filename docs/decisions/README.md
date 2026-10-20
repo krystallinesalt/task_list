@@ -49,3 +49,6 @@ What follows, including costs and what would have to change to reverse it.
 ## Index
 
 - [0001: Objective status is derived from its tasks](0001-objective-status-derived-from-tasks.md)
+
+- [0002: Cross-objective task views use explicit Staff accounts](0002-cross-objective-task-views.md)
+- [0003: Keep native objective activity in a dedicated tab](0003-objective-activity-tab.md)

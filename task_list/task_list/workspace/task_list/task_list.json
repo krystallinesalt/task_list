@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"task-list-header\",\"type\":\"header\",\"data\":{\"text\":\"Task List\",\"level\":1}},{\"id\":\"objectives-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objectives\",\"col\":4}},{\"id\":\"staff-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Staff\",\"col\":4}},{\"id\":\"objective-types-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objective Types\",\"col\":4}}]",
+ "content": "[{\"id\":\"task-list-header\",\"type\":\"header\",\"data\":{\"text\":\"Task List\",\"level\":1}},{\"id\":\"objectives-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objectives\",\"col\":4}},{\"id\":\"staff-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Staff\",\"col\":4}},{\"id\":\"objective-types-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Objective Types\",\"col\":4}},{\"id\":\"my-tasks-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"My Tasks\",\"col\":4}},{\"id\":\"overdue-tasks-shortcut\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Overdue Tasks\",\"col\":4}}]",
  "custom_blocks": [],
  "doctype": "Workspace",
  "for_user": "",
@@ -38,6 +38,20 @@
    "label": "Objective Types",
    "link_to": "Objective Type",
    "type": "DocType"
+  },
+  {
+   "label": "My Tasks",
+   "link_to": "My Tasks",
+   "type": "Report",
+   "report_ref_doctype": "Tasklist Objective",
+   "color": "Blue"
+  },
+  {
+   "label": "Overdue Tasks",
+   "link_to": "Overdue Tasks",
+   "type": "Report",
+   "report_ref_doctype": "Tasklist Objective",
+   "color": "Orange"
   }
  ],
  "title": "Task List",

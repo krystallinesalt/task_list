@@ -147,3 +147,18 @@ class IntegrationTestTasklistObjective(IntegrationTestCase):
 		objective = make_objective([task_row(self.staff.name, omit=("type",))])
 
 		self.assertEqual(objective.tasks[0].type, "Corrective")
+
+
+class IntegrationTestObjectiveTabs(IntegrationTestCase):
+	def test_details_and_activity_layout(self):
+		meta = frappe.get_meta("Tasklist Objective")
+		fields = {field.fieldname: field for field in meta.fields}
+		self.assertEqual(fields["details_tab"].fieldtype, "Tab Break")
+		self.assertEqual(fields["activity_tab"].fieldtype, "Tab Break")
+		self.assertEqual(fields["activity_content"].fieldtype, "HTML")
+		# An empty mount prevents field refresh from replacing the live native footer.
+		self.assertFalse(fields["activity_content"].options)
+		order = [field.fieldname for field in meta.fields]
+		self.assertLess(order.index("details_tab"), order.index("objective"))
+		self.assertLess(order.index("tasks"), order.index("activity_tab"))
+		self.assertLess(order.index("activity_tab"), order.index("activity_content"))

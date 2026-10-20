@@ -58,3 +58,7 @@ jspm_packages/
 .claude/*
 !.claude/skills
 !.claude/settings.json
+
+# Browser verification artifacts
+playwright-report/
+test-results/

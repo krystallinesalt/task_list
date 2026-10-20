@@ -18,6 +18,7 @@ flowchart LR
     TO -->|"tasks"| TOT
     TO -->|"objective_type"| OT
     TOT -->|"person_responsible"| S
+    S -->|"user (optional)"| U["Frappe User"]
 ```
 
 ## Derived values
@@ -41,7 +42,8 @@ no permission-query hooks or whitelisted methods.
 
 ## Desk presentation
 
-The public **Task List** workspace links the three standalone DocTypes. Install,
+The public **Task List** workspace links the three standalone DocTypes and the
+My Tasks and Overdue Tasks reports. Install,
 the `set_default_task_list_workspace` patch and a `User.after_insert` hook make
 it the default workspace of System Users who have none; an explicit choice is
 kept.
@@ -49,3 +51,19 @@ kept.
 `tasklist_objective.js` colours the task grid: the status cell is green when
 `Done` and pink when `Not done` past its end date; the priority cell is coloured
 by priority. It is display only and changes no data.
+
+## Cross-objective task reports
+
+Staff has an optional `user` Link to User. It grants no permissions and need not
+be unique: My Tasks includes unfinished rows for every Staff linked to the
+session user. No link yields empty results with setup guidance. Overdue Tasks
+includes all permitted unfinished rows whose end date is before the site date.
+Both standard Script Reports join child rows from permission-scoped objectives
+using `frappe.qb.get_query(ignore_permissions=False)`, preserving existing
+System Manager report access and User Permissions. Prepared reports are off.
+The workspace links both reports; objective links open the existing editor.
+
+Objective forms use Details and Activity tabs. Details contains all objective
+fields and tasks. Activity hosts the original Frappe footer container (comments
+and timeline), moved by the objective client script without replacing its
+handlers or history data. New objectives show save-first guidance.

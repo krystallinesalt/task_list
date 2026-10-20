@@ -51,7 +51,7 @@ Match verification to the risk of the change. Commands run from the bench
 directory unless stated otherwise.
 
 `scripts/verify.sh` runs the shared stages from any directory; CI runs the
-same `lint` and `server` stages.
+same `lint` and `server` stages. The Server job also runs `scripts/verify-ui.sh`.
 
 | Change                                                        | Required gates                                    | Command                                                                                      |
 | ------------------------------------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -71,3 +71,18 @@ same `lint` and `server` stages.
   in the full suite before changing implementation or assertions.
 - CI pins Frappe to the exact tag in `FRAPPE_VERSION`; bump every workflow
   together, deliberately, after checking the release.
+
+## Desk browser gate
+
+Run `yarn install --frozen-lockfile` and `yarn playwright install chromium` from
+the app directory once. From the bench root run
+`apps/task_list/scripts/verify-ui.sh`. It uses port 8001 (override with
+`TASK_LIST_UI_PORT`), the existing `task-list-test.localhost`, an ephemeral
+System Manager login, and synthetic objective/comment records. It starts an
+explicitly selected test-site web server, runs Playwright, then stops the server
+and removes its fixtures on success or failure. It never reads site passwords.
+The test site must already be migrated with tests enabled and Redis available.
+
+Client activity changes require this gate in addition to `verify.sh pre-push`.
+The CI Server job installs Chromium and runs the same gate after server tests.
+Failures retain Playwright traces/screenshots in ignored `test-results/`.

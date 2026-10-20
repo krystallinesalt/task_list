@@ -3,7 +3,7 @@
 Points from each business rule to its implementation and regression tests.
 See [domain-model.md](domain-model.md) for relationships and
 [verification.md](verification.md) for the commands. Server tests own business
-rules and permissions; there is no browser suite yet.
+rules and permissions; Desk browser tests cover the Activity integration.
 
 ## Rule index
 
@@ -24,6 +24,14 @@ to `task_list/`.
 Test records come from `tests/factories.py`, which gives each objective a
 unique name so tests stay independent and rerunnable.
 
+## Cross-objective task views
+
+`tests/test_task_views.py` covers optional Staff User metadata, current-user
+matching across objectives and multiple Staff, completed/other/unlinked task
+exclusion, more than 20 rows, ignored user-override filters, overdue dates before/equal/after today, setup guidance, linked empty
+results, Guest denial, real objective User Permission scoping and report entry
+points. `tests/test_workspace.py` checks both report shortcuts.
+
 ## Repository rule tests
 
 These run in `scripts/verify.sh lint`:
@@ -35,3 +43,15 @@ These run in `scripts/verify.sh lint`:
   rule.
 - `scripts/test_workflow_concurrency.py`: pull requests cancel superseded runs;
   push and manual runs never cancel.
+
+## Objective form tabs
+
+`doctype/tasklist_objective/test_tasklist_objective.py::IntegrationTestObjectiveTabs::test_details_and_activity_layout`
+checks structural tabs, task placement and the empty HTML mount used to preserve
+the native footer during field refresh. Browser lifecycle checks cover comments,
+history, tab switching, new objectives and repeat refreshes.
+
+`e2e/objective-activity.spec.js` owns real-browser checks for native comment and
+notification anchors on fresh navigation/reload, comments and history after
+save, tab visibility and a single footer after repeated refreshes. The isolated
+`scripts/verify-ui.sh` gate supplies synthetic fixtures and an ephemeral account.
