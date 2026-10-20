@@ -62,3 +62,6 @@ jspm_packages/
 # Browser verification artifacts
 playwright-report/
 test-results/
+
+# Frappe asset linker creates this generated symlink.
+task_list/public/node_modules

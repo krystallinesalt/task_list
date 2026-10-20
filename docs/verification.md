@@ -88,3 +88,8 @@ Desk instead of the setup wizard.
 Client activity changes require this gate in addition to `verify.sh pre-push`.
 The CI Server job installs Chromium and runs the same gate after server tests.
 Failures retain Playwright traces/screenshots in ignored `test-results/`.
+
+
+The lint gate also runs the pure client history replay tests with Node's built-in
+test runner (`yarn test:unit` runs them directly). New raw public assets require
+`bench build --app task_list` to link assets before local browser verification.

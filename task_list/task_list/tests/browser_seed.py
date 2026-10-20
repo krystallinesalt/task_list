@@ -6,10 +6,13 @@ import os
 import frappe
 from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
 
-from task_list.task_list.tests.factories import make_objective
+from task_list.task_list.tests.factories import make_objective, make_staff, task_row
 
 BROWSER_USER = "task-list-browser@example.com"
 OBJECTIVE = "_Test Task List Activity Browser"
+HISTORY_OBJECTIVE = "_Test Task List Changes Browser"
+HISTORY_STAFF = "_Test Task Changes Browser"
+EMPTY_OBJECTIVE = "_Test Task List Empty Changes Browser"
 
 
 def setup():
@@ -31,15 +34,41 @@ def setup():
 	).insert()
 	objective = make_objective(objective=OBJECTIVE, team="Browser QA", department="Browser QA")
 	objective.add_comment("Comment", "Synthetic browser check: native activity comment.")
+	make_objective(objective=EMPTY_OBJECTIVE, department="Browser QA")
+	staff = make_staff(first_name=HISTORY_STAFF, last_name="QA")
+	history = make_objective(
+		objective=HISTORY_OBJECTIVE,
+		team="Initial Team",
+		department="Browser QA",
+		tasks=[task_row(staff.name, task="Inspect <b>belt</b>")],
+	)
+	history.team = "Previous Team"
+	history.tasks[0].status = "Done"
+	history.append("tasks", task_row(staff.name, task="Temporary task"))
+	history.save(ignore_version=False)
+	history.team = "Current Team"
+	history.tasks[0].end_date = "2026-09-15"
+	history.tasks[0].action_plan = "Updated action plan\n<em>history</em>"
+	history.remove(history.tasks[1])
+	history.save(ignore_version=False)
 
 
 def cleanup():
 	check_test_site()
-	if frappe.db.exists("Tasklist Objective", OBJECTIVE):
-		objective = frappe.get_doc("Tasklist Objective", OBJECTIVE)
-		if objective.department != "Browser QA":
-			frappe.throw("Refusing to remove an objective not owned by browser setup")
-		frappe.delete_doc("Tasklist Objective", OBJECTIVE)
+	for name in (OBJECTIVE, HISTORY_OBJECTIVE, EMPTY_OBJECTIVE):
+		if frappe.db.exists("Tasklist Objective", name):
+			objective = frappe.get_doc("Tasklist Objective", name)
+			if objective.department != "Browser QA":
+				frappe.throw("Refusing to remove an objective not owned by browser setup")
+			frappe.delete_doc("Tasklist Objective", name)
+	staff = frappe.qb.get_query(
+		"Staff",
+		fields=["name"],
+		filters={"first_name": HISTORY_STAFF, "last_name": "QA"},
+		ignore_permissions=False,
+	).run(pluck=True)
+	for name in staff:
+		frappe.delete_doc("Staff", name)
 	if frappe.db.exists("User", BROWSER_USER):
 		user = frappe.get_doc("User", BROWSER_USER)
 		if user.first_name != "_Test Task List Browser":

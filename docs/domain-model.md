@@ -38,7 +38,8 @@ flowchart LR
 ## Permissions
 
 Every standalone DocType grants full access to `System Manager` only. There are
-no permission-query hooks or whitelisted methods.
+no permission-query hooks. The whitelisted objective history reader checks
+objective read permission and native Version read permission before querying.
 
 ## Desk presentation
 
@@ -63,7 +64,19 @@ using `frappe.qb.get_query(ignore_permissions=False)`, preserving existing
 System Manager report access and User Permissions. Prepared reports are off.
 The workspace links both reports; objective links open the existing editor.
 
-Objective forms use Details and Activity tabs. Details contains all objective
+Objective forms use Details, Changes and Activity tabs. Details contains all objective
 fields and tasks. Activity hosts the original Frappe footer container (comments
 and timeline), moved by the objective client script without replacing its
 handlers or history data. New objectives show save-first guidance.
+
+
+## Objective change history
+
+The read-only Changes tab calls the objective controller's `get_changes` method.
+It returns a fixed projection of saved fields, task rows and permission-scoped
+native Version diffs, in pages of 50. Further pages require the same objective
+modified timestamp. No unsaved form values, snapshots or write methods are used.
+The client reverses newer diffs for display, keyed by stable child-row names,
+and highlights the selected save in a Details-like layout with a history slider.
+Removed rows are shown explicitly; malformed/gapped task history is unavailable.
+Native history cannot recover unrecorded changes or exact past task order.
