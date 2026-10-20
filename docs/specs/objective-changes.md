@@ -81,3 +81,5 @@ read-only reconstruction explanation below the preview.
 Reapply safe diff markup after native grid refresh, task collapse, pagination and
 keyboard row navigation. Disconnect rendering observation during decoration and
 on preview disposal so the component neither loops nor retains detached grids.
+
+Native presentation refinement: [PR #7](https://github.com/krystallinesalt/task_list/pull/7).

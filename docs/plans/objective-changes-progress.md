@@ -26,4 +26,5 @@ reconstruction note sits below the preview. Column settings stay synchronized
 with Details, with read-only row expansion and isolated historical metadata.
 Publication is authorized. Review found a native re-rendering issue; the fix
 keeps task diffs visible after collapse, pagination and keyboard navigation.
-The refinement PR will hold review and verification evidence.
+Published as [PR #7](https://github.com/krystallinesalt/task_list/pull/7),
+which holds review and verification evidence.
