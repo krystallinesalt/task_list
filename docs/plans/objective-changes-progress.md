@@ -16,5 +16,5 @@ with parent fields; browser assertions cover columns, widths, scrolling and colo
 
 Implementation and review fixes are complete, including native multiline-note
 formatting and removal of the redundant Change column. Published as [PR #6](https://github.com/krystallinesalt/task_list/pull/6);
-CI remains pending. No rollback, snapshot
+Verification evidence is maintained in the PR. No rollback, snapshot
 storage or Frappe core changes were introduced.
