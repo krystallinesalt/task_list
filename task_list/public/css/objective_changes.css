@@ -1,31 +1,40 @@
 .objective-changes { padding: 4px 0 20px; }
-.objective-changes .history-navigation { padding: 16px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--subtle-fg); }
-.objective-changes .history-controls { display: flex; align-items: center; gap: 12px; }
+.objective-changes .history-navigation { padding: 8px 10px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--subtle-fg); }
+.objective-changes .history-controls { display: flex; align-items: center; gap: 6px; }
 .objective-changes .history-slider { flex: 1; min-width: 80px; accent-color: var(--primary); cursor: pointer; }
 .objective-changes .history-ends { display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 2px 45px 10px; color: var(--text-muted); font-size: var(--text-xs); }
-.objective-changes .history-save-label { font-weight: 600; }
-.objective-changes .history-summary { color: var(--text-muted); margin-top: 6px; }
-.objective-changes .history-older, .objective-changes .history-reload { margin-top: 12px; }
-.objective-changes .history-notice { color: var(--text-muted); font-size: var(--text-xs); margin: 12px 0 20px; }
-.objective-changes .history-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px 30px; padding-bottom: 24px; margin-bottom: 24px; border-bottom: 1px solid var(--border-color); }
-.objective-changes .history-field { padding: 0; border: 0; border-radius: 0; overflow-wrap: anywhere; }
-.objective-changes .history-field[data-history-field="objective"] { grid-column: 1 / -1; padding-bottom: 24px; margin-bottom: 4px; border-bottom: 1px solid var(--border-color); }
-.objective-changes .history-field[data-history-field="team"] { grid-column: 1; grid-row: 2; }
-.objective-changes .history-field[data-history-field="objective_type"] { grid-column: 1; grid-row: 3; }
-.objective-changes .history-field[data-history-field="department"] { grid-column: 2; grid-row: 2; }
-.objective-changes .history-field[data-history-field="status"] { grid-column: 2; grid-row: 3; }
-.objective-changes .history-control-value { padding: 6px 8px; min-height: var(--control-height); background: var(--control-bg); border-radius: var(--border-radius); }
-.objective-changes .history-field.history-edited .history-control-value { background: inherit; }
-.objective-changes .history-field-label { color: var(--text-muted); font-size: var(--text-sm); margin-bottom: 6px; }
-.objective-changes .history-task-scroll { overflow-x: auto; max-width: 100%; padding: 1px; }
-.objective-changes .history-tasks { border-radius: var(--border-radius-md); border-style: hidden; box-shadow: 0 0 0 1px var(--border-color); margin-bottom: 1px; font-size: var(--text-sm); table-layout: fixed; min-width: 100%; }
-.objective-changes .history-tasks th { white-space: normal; background: var(--subtle-fg); color: var(--text-muted); font-weight: normal; padding: 8px; }
-.objective-changes .history-tasks td { padding: 8px; min-width: 0; white-space: normal; overflow-wrap: anywhere; vertical-align: top; }
+.objective-changes .history-save-label { font-weight: 600; font-size: var(--text-sm); line-height: 20px; }
+.objective-changes .history-summary { color: var(--text-muted); font-size: var(--text-xs); line-height: 18px; }
+.objective-changes .history-older { margin-top: 4px; }
+.objective-changes .history-notice { color: var(--text-muted); font-size: var(--text-xs); margin: 12px 0 0; }
+.objective-changes .history-controls .btn { height: 24px; min-width: 24px; padding: 0 4px; }
+.objective-changes .history-navigation { margin-bottom: 8px; }
 .objective-changes .history-value, .objective-changes .history-before, .objective-changes .history-after { white-space: pre-wrap; }
 .objective-changes .history-before { display: block; color: var(--text-muted); }
 .objective-changes .history-after { display: block; font-weight: 600; margin-top: 4px; }
 .objective-changes .history-edited { background: var(--diff-changed, var(--yellow-50)); }
-.objective-changes .history-row-added, .objective-changes .history-row-added > td { background: var(--diff-added, var(--green-50)); }
-.objective-changes .history-row-removed, .objective-changes .history-row-removed > td { background: var(--diff-removed, var(--red-50)); }
+.objective-changes .history-row-added { background: var(--diff-added, var(--green-50)); }
+.objective-changes .history-row-removed { background: var(--diff-removed, var(--red-50)); }
 .objective-changes .history-row-removed .history-value { text-decoration: line-through; }
-@media (max-width: 640px) { .objective-changes .history-fields { grid-template-columns: 1fr; } .objective-changes .history-fields .history-field { grid-column: 1; grid-row: auto; } }
+/* Use the same native section gutter outside the HTML control's existing gutter. */
+.objective-changes .history-sheet { margin: 0 calc(-2 * var(--padding-md)); }
+.objective-changes .history-sheet .form-page { box-shadow: none; border-radius: 0; }
+.objective-changes .history-sheet .grid-static-col.history-edited { background: var(--diff-changed, var(--yellow-50)); }
+.objective-changes .history-sheet .history-row-added .grid-static-col,
+.objective-changes .history-sheet .history-row-added .row-index,
+.objective-changes .history-sheet .history-row-added .row-check { background: var(--diff-added, var(--green-50)); }
+.objective-changes .history-sheet .history-row-removed .grid-static-col,
+.objective-changes .history-sheet .history-row-removed .row-index,
+.objective-changes .history-sheet .history-row-removed .row-check { background: var(--diff-removed, var(--red-50)); }
+.objective-changes .history-sheet .history-tasks .history-before,
+.objective-changes .history-sheet .history-tasks .history-after { display: inline; margin: 0; }
+.objective-changes .history-sheet .history-tasks .history-before::after { content: " → "; }
+
+.objective-changes .history-sheet .grid-static-col .static-area,
+.objective-changes .history-sheet .grid-static-col .history-value,
+.objective-changes .history-sheet .grid-static-col .history-before,
+.objective-changes .history-sheet .grid-static-col .history-after { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.objective-changes .history-control-value { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.objective-changes .history-control-value .history-before,
+.objective-changes .history-control-value .history-after { display: inline; white-space: nowrap; margin: 0; }
+.objective-changes .history-control-value .history-before::after { content: " → "; }

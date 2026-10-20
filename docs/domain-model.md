@@ -80,3 +80,7 @@ The client reverses newer diffs for display, keyed by stable child-row names,
 and highlights the selected save in a Details-like layout with a history slider.
 Removed rows are shown explicitly; malformed/gapped task history is unavailable.
 Native history cannot recover unrecorded changes or exact past task order.
+
+The history preview uses isolated native Frappe Layout and child-grid controls.
+Historical row identities and metadata are separate from editable Details rows;
+native redraws reapply escaped diff markup without changing stored data.

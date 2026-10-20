@@ -6,10 +6,10 @@ Show what each recorded save changed in an objective and its tasks, in a
 read-only layout resembling Details. A history slider runs from the oldest
 loaded save to the newest, with earlier/later buttons and author/date labels.
 Changed cells show before and after; task additions/removals are distinguished
-by text and color. All nine task fields appear as columns in the same order as
-Details, with widths taken from its native grid and horizontal scrolling. No
-secondary fields are hidden in expandable task details. Task rows have no separate
-Change column; cell/row colours and accessible row labels identify change kind. Match Details: full-width Objective,
+by text and color. The native child grid follows Details column visibility,
+order and widths, with horizontal scrolling and read-only row details for all
+nine task fields. No custom expandable content is embedded in task cells. Task rows have no separate
+Change column; cell/row colours and accessible row labels identify change kind. Match Details field visibility,
 Team/Objective Type in the left column and Department/Status in the right.
 Use native control/grid spacing; edited child cells use the same background as
 edited parent fields, while added and removed rows colour every cell. Browser
@@ -63,3 +63,21 @@ Fresh-install CI remains a release gate when publication is authorized. Future
 work may add date/task filtering; rollback is explicitly excluded.
 
 Implementation: [PR #6](https://github.com/krystallinesalt/task_list/pull/6).
+
+## Native Details presentation refinement
+
+Render the historical sheet with an isolated Frappe Layout and native child grid.
+Use Details field visibility, section/column arrangement, column widths and visible
+columns. Keep native labels, required markers, row numbering, borders, truncation
+and horizontal scrolling. Highlight saved changes inside native value areas.
+Historical row data and metadata use distinct identities and copies so preview
+rendering cannot change live Details values, editability or shared metadata.
+No history API, permissions or stored data changes. Verify native structure,
+field visibility, grid sizing, safe content and unchanged live document data.
+
+Keep history navigation compact (slider, save label and counts) and put the
+read-only reconstruction explanation below the preview.
+
+Reapply safe diff markup after native grid refresh, task collapse, pagination and
+keyboard row navigation. Disconnect rendering observation during decoration and
+on preview disposal so the component neither loops nor retains detached grids.

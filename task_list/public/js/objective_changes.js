@@ -16,8 +16,10 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 	async load(token, older = false) {
 		this.token = token;
 		this.loading = true;
-		if (!older) this.target.empty().text(__("Loading recorded changes…"));
-		else this.target.find(".history-older").prop("disabled", true);
+		if (!older) {
+			this.clear_sheet();
+			this.target.empty().text(__("Loading recorded changes…"));
+		} else this.target.find(".history-older").prop("disabled", true);
 		try {
 			const response = await frappe.call({
 				method: "task_list.task_list.doctype.tasklist_objective.tasklist_objective.get_changes",
@@ -45,6 +47,7 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 			this.render();
 		} catch {
 			if (!this.is_current(token)) return;
+			this.clear_sheet();
 			this.target
 				.empty()
 				.append($("<p>").text(__("History could not be loaded. Reload to try again.")));
@@ -63,6 +66,7 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 	}
 
 	render() {
+		this.clear_sheet();
 		this.target.empty().addClass("objective-changes");
 		this.target.append(`<div class="history-navigation">
 			<div class="history-controls">
@@ -73,16 +77,20 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 					"Save history"
 				)}" min="0" list="task-list-history-saves">
 				<button class="btn btn-default btn-sm history-next" aria-label="${__("Later save")}">→</button>
-			</div><div class="history-ends"><span>${__("Older")}</span><span>${__("Newer")}</span></div>
+				<button class="btn btn-default btn-xs history-reload" aria-label="${__(
+					"Refresh history"
+				)}" title="${__("Refresh history")}">↻</button>
+			</div><div class="history-ends sr-only"><span>${__("Older")}</span><span>${__(
+			"Newer"
+		)}</span></div>
 			<datalist id="task-list-history-saves"></datalist>
 			<div class="history-save-label" aria-live="polite"></div>
 			<div class="history-summary"></div>
 			<button class="btn btn-default btn-sm history-older">${__("Load older saves")}</button>
-			<button class="btn btn-default btn-sm history-reload">${__("Refresh history")}</button>
-		</div><p class="history-notice">${__(
+		</div><div class="history-sheet"></div>
+		<p class="history-notice">${__(
 			"Read-only reconstruction from recorded history. Unrecorded changes and exact past task order cannot be recovered. Staff names use available titles."
-		)}</p>
-		<div class="history-sheet"></div>`);
+		)}</p>`);
 		const count = this.versions.length;
 		this.target
 			.find(".history-reload")
@@ -130,7 +138,7 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 		this.index = index;
 		const view = this.model.view(index);
 		const revision = view.revision;
-		const label = __("Save {0} of {1} loaded · {2} · {3}", [
+		const label = __("Save {0} of {1} · {2} · {3}", [
 			index + 1,
 			this.versions.length,
 			frappe.datetime.str_to_user(revision.at),
@@ -143,13 +151,14 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 		this.target
 			.find(".history-summary")
 			.text(
-				__("{0} objective fields · {1} tasks edited · {2} added · {3} removed", [
+				__("{0} fields · {1} tasks edited · {2} added · {3} removed", [
 					revision.changed.length,
 					revision.rows.length,
 					revision.added.length,
 					revision.removed.length,
 				])
 			);
+		this.clear_sheet();
 		const sheet = this.target.find(".history-sheet").empty();
 		if (view.unavailable) {
 			sheet.text(
@@ -159,98 +168,12 @@ task_list.ObjectiveChanges = class ObjectiveChanges {
 			);
 			return;
 		}
-		this.render_fields(sheet, view);
-		this.render_tasks(sheet, view);
+		this.sheet = new task_list.ObjectiveHistorySheet(this, sheet, view);
 	}
 
-	render_fields(sheet, { state, revision }) {
-		const labels = {
-			objective: __("Objective"),
-			team: __("Team"),
-			objective_type: __("Objective Type"),
-			department: __("Department"),
-			status: __("Status"),
-		};
-		const fields = $("<div>").addClass("history-fields").appendTo(sheet);
-		for (const [field, label] of Object.entries(labels)) {
-			const change = revision.changed.find((item) => item.field === field);
-			const value = this.value_html(state.fields[field], change);
-			fields.append(`<div class="history-field ${
-				change ? "history-edited" : ""
-			}" data-history-field="${field}">
-				<div class="history-field-label">${this.escape(
-					label
-				)}</div><div class="history-control-value">${value}</div></div>`);
-		}
-	}
-
-	render_tasks(sheet, { state, revision }) {
-		const columns = {
-			task: __("Task"),
-			priority: __("Priority"),
-			type: __("Type"),
-			person_responsible: __("Person Responsible"),
-			start_date: __("Start Date"),
-			end_date: __("End Date"),
-			action_plan: __("Action Plan"),
-			remarks: __("Remarks"),
-			status: __("Status"),
-		};
-		const grid = this.frm.fields_dict.tasks.grid;
-		const widths = Object.keys(columns).map((field) => {
-			const df = grid.docfields.find((item) => item.fieldname === field);
-			return grid.get_column_width(df);
-		});
-		$("<h5>").text(__("Tasks")).appendTo(sheet);
-		const wrapper = $("<div>").addClass("history-task-scroll").appendTo(sheet);
-		const table = $("<table>")
-			.addClass("table table-bordered history-tasks")
-			.css("width", `${widths.reduce((total, width) => total + width, 0)}px`)
-			.appendTo(wrapper);
-		table.append(
-			`<colgroup>${widths
-				.map((width) => `<col style="width:${width}px">`)
-				.join("")}</colgroup>`
-		);
-		table.append(
-			`<thead><tr>${Object.values(columns)
-				.map((label) => `<th>${this.escape(label)}</th>`)
-				.join("")}</tr></thead>`
-		);
-		const body = $("<tbody>").appendTo(table);
-		const rows = [
-			...state.tasks.map((row) => ({ row, removed: false })),
-			...revision.removed.map((row) => ({ row, removed: true })),
-		];
-		for (const { row, removed } of rows) {
-			const added = revision.added.some((item) => item.id === row.id);
-			const edits = revision.rows.find((item) => item.id === row.id)?.changed || [];
-			const kind = removed
-				? "removed"
-				: added
-				? "added"
-				: edits.length
-				? "edited"
-				: "unchanged";
-			const cells = Object.keys(columns)
-				.map((field) => {
-					const change = edits.find((item) => item.field === field);
-					return `<td class="${
-						change ? "history-edited" : ""
-					}" data-history-field="${field}">${this.value_html(
-						row.values[field],
-						change
-					)}</td>`;
-				})
-				.join("");
-			body.append(
-				`<tr class="history-row-${kind}" data-history-row="${this.escape(
-					row.id
-				)}" aria-label="${this.escape(__(kind))}">${cells}</tr>`
-			);
-		}
-		if (!rows.length)
-			body.append(`<tr><td colspan="9">${__("No tasks at this save.")}</td></tr>`);
+	clear_sheet() {
+		this.sheet?.destroy();
+		this.sheet = null;
 	}
 
 	value_html(value, change) {

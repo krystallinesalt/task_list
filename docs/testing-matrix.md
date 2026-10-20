@@ -71,5 +71,8 @@ highlights, task additions/removals, escaped descriptions, empty/new objectives,
 late responses, Retry and preservation of saved Details data. Fixtures remain
 restricted to owned synthetic records on the exclusive test site.
 
-Changes browser assertions also cover all task columns in Details order, native
-grid widths, horizontal scrolling and matching parent/child change colours.
+Changes browser assertions also cover native Layout/grid structure, Details
+field visibility and column widths, horizontal scrolling, read-only row expansion,
+matching parent/child change colours, compact toolbar height and the notice
+below the preview. Native refresh, collapse, keyboard navigation and child-grid
+paging must preserve diff markup, colours and read-only controls.

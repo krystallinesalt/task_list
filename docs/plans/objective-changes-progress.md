@@ -18,3 +18,12 @@ Implementation and review fixes are complete, including native multiline-note
 formatting and removal of the redundant Change column. Published as [PR #6](https://github.com/krystallinesalt/task_list/pull/6);
 Verification evidence is maintained in the PR. No rollback, snapshot
 storage or Frappe core changes were introduced.
+
+Native Details presentation refinement is complete locally on
+`codex/changes-details-layout`: the custom sheet/table is replaced with isolated
+native Layout/control/grid rendering. The history toolbar is compact and the
+reconstruction note sits below the preview. Column settings stay synchronized
+with Details, with read-only row expansion and isolated historical metadata.
+Publication is authorized. Review found a native re-rendering issue; the fix
+keeps task diffs visible after collapse, pagination and keyboard navigation.
+The refinement PR will hold review and verification evidence.
