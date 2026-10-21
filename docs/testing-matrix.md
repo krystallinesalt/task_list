@@ -48,6 +48,9 @@ These run in `scripts/verify.sh lint`:
 
 ## Objective form tabs
 
+Activity browser coverage also checks readable toggle/email controls and email
+button hit-testing at desktop, tablet and phone widths.
+
 `doctype/tasklist_objective/test_tasklist_objective.py::IntegrationTestObjectiveTabs::test_details_and_activity_layout`
 checks structural tabs, task placement and the empty HTML mount used to preserve
 the native footer during field refresh. Browser lifecycle checks cover comments,

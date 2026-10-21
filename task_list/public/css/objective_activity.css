@@ -1,0 +1,33 @@
+[data-fieldname="activity_content"] .new-timeline .activity-title {
+	flex-wrap: wrap;
+	gap: var(--margin-sm);
+}
+
+[data-fieldname="activity_content"] .activity-title h4 {
+	flex: 1 0 80px;
+}
+
+[data-fieldname="activity_content"] .activity-title .show-all-activity,
+[data-fieldname="activity_content"] .activity-title .timeline-actions {
+	flex: 0 0 auto;
+}
+
+[data-fieldname="activity_content"] .activity-title .timeline-actions {
+	min-height: auto;
+}
+
+[data-fieldname="activity_content"] .activity-title .timeline-actions .timeline-item {
+	margin-left: 0;
+}
+
+/* The HTML mount inherits field action positioning; timeline actions stay in flow. */
+[data-fieldname="activity_content"] .activity-title .action-btn {
+	position: static;
+	z-index: auto;
+}
+
+[data-fieldname="activity_content"] .activity-title .action-buttons {
+	overflow: visible;
+	margin: 0;
+	padding: 0;
+}

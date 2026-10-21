@@ -26,6 +26,7 @@ frappe.ui.form.on("Tasklist Objective", {
 		$(frm.wrapper).on("grid-row-render.task-list-colors", (event, grid_row) => {
 			set_task_row_backgrounds(grid_row);
 		});
+		return frappe.require("/assets/task_list/css/objective_activity.css");
 	},
 
 	on_tab_change(frm) {

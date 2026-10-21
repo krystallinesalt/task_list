@@ -100,3 +100,37 @@ test("new objectives show save-first guidance in Activity", async ({ page }) => 
 	).toBeVisible();
 	await expect(activity.locator(".comment-box")).toBeHidden();
 });
+
+test("Activity header controls remain readable at desktop and narrow widths", async ({
+	page,
+}, testInfo) => {
+	await page.goto(objectiveRoute + "#activity_tab");
+	const activity = page.getByRole("tabpanel", { name: "Activity" });
+	await expect(activity.locator(".activity-title")).toBeVisible();
+	for (const width of [1280, 768, 390]) {
+		await page.setViewportSize({ width, height: 900 });
+		const header = activity.locator(".activity-title");
+		await header.scrollIntoViewIfNeeded();
+		await page.screenshot({ path: testInfo.outputPath(`activity-header-${width}.png`) });
+		const layout = await header.evaluate((element) => {
+			const toggle = element.querySelector(".switch");
+			const actions = element.querySelector(".action-buttons");
+			const button = actions.querySelector("button").getBoundingClientRect();
+			const header = element.getBoundingClientRect();
+			return {
+				toggleWidth: toggle.getBoundingClientRect().width,
+				actionsWidth: actions.getBoundingClientRect().width,
+				actionsContentWidth: button.width,
+				buttonWithinHeader: button.left >= header.left && button.right <= header.right,
+			};
+		});
+		expect(layout.toggleWidth).toBeGreaterThanOrEqual(26);
+		expect(layout.actionsWidth).toBeGreaterThanOrEqual(layout.actionsContentWidth);
+		expect(layout.buttonWithinHeader).toBe(true);
+		await header
+			.getByRole("button", { name: "New Email", exact: true })
+			.click({ trial: true });
+	}
+	await page.reload();
+	await activity.getByRole("button", { name: "New Email", exact: true }).click({ trial: true });
+});
