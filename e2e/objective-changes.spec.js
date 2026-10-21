@@ -326,3 +326,44 @@ test("task diffs and read-only state survive native paging and refresh", async (
 	).toHaveCount(1);
 	await expect(changes.locator(".rows .grid-row-check").first()).toBeDisabled();
 });
+
+test("Changes configures shared native columns and preserves the selected save", async ({
+	page,
+}) => {
+	await page.goto(route);
+	const changes = page.getByRole("tabpanel", { name: "Changes" });
+	await expect(changes.locator(".history-save-label")).toContainText("Save 2 of 2");
+	await changes.getByRole("button", { name: "Earlier save" }).click();
+	const gear = changes.getByRole("button", { name: "Configure Columns", exact: true });
+	await gear.click();
+	const dialog = page.locator(".modal:visible").filter({ hasText: "Configure Columns" });
+	await dialog.locator('.column-width[data-fieldname="task"]').fill("340");
+	await dialog.locator('.sticky-column[data-fieldname="task"]').check();
+	await dialog.locator('.remove-field[data-fieldname="priority"]').click();
+	await dialog.getByRole("button", { name: "Update", exact: true }).click();
+	const columns = ".history-tasks .grid-heading-row .grid-static-col[data-fieldname]";
+	await expect(changes.locator(columns)).toHaveCount(8);
+	await expect(changes.locator(`${columns}[data-fieldname="task"]`)).toHaveCSS("width", "340px");
+	await expect(changes.locator(`${columns}[data-fieldname="task"]`)).toHaveCSS(
+		"position",
+		"sticky"
+	);
+	await expect(changes.locator(".history-save-label")).toContainText("Save 1 of 2");
+	await expect(changes.locator(".history-row-added")).toContainText("Temporary task");
+	await page.getByRole("tab", { name: "Details", exact: true }).click();
+	await expect(
+		page
+			.getByRole("tabpanel", { name: "Details" })
+			.locator(".grid-heading-row .grid-static-col[data-fieldname]")
+	).toHaveCount(8);
+	await page.getByRole("tab", { name: "Changes", exact: true }).click();
+	await page.reload();
+	await expect(changes.locator(columns)).toHaveCount(8);
+	await gear.click();
+	await dialog.getByRole("button", { name: "Reset to default", exact: true }).click();
+	await expect(changes.locator(columns)).toHaveCount(9);
+	await expect(gear).toBeVisible();
+	expect(
+		await page.evaluate(() => frappe.views.formview["Tasklist Objective"].frm.is_dirty())
+	).toBeFalsy();
+});

@@ -28,3 +28,12 @@ Publication is authorized. Review found a native re-rendering issue; the fix
 keeps task diffs visible after collapse, pagination and keyboard navigation.
 Published as [PR #7](https://github.com/krystallinesalt/task_list/pull/7),
 which holds review and verification evidence.
+
+Column configuration refinement: add the native Configure Columns dialog to the
+last header cell in Changes. Details and Changes share the current user's column
+selection, order, widths and sticky settings; changing these must preserve the
+selected save, diff colours and read-only historical values. Reuse the Details
+grid's dialog and refresh the isolated preview after its settings update, without
+changing core, permissions or stored objective/task data. Browser coverage checks
+Update, reset, tab synchronization and persistence. Implementation complete locally
+on `codex/changes-configure-columns`; review and publication are authorized.
