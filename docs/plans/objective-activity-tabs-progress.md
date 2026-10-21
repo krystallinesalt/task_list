@@ -19,3 +19,4 @@ form-scoped stylesheet preserves intrinsic control widths and allows the
 header to wrap at narrow widths. Keep Frappe's toggle, email action and handlers.
 No core, data or permission changes. Browser regression measures the toggle and
 button container at desktop, tablet and phone widths and captures the layout.
+Published as [PR #10](https://github.com/krystallinesalt/task_list/pull/10).
