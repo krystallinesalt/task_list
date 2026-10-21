@@ -38,7 +38,8 @@ changing core, permissions or stored objective/task data. Browser coverage check
 Update, reset, tab synchronization and persistence. Implementation complete locally
 on `codex/changes-configure-columns`, published as [PR #8](https://github.com/krystallinesalt/task_list/pull/8).
 
-Automatic field discovery is implemented locally on `codex/metadata-history-fields`.
+Automatic field discovery is published as [PR #11](https://github.com/krystallinesalt/task_list/pull/11)
+from `codex/metadata-history-fields`.
 The API derives readable scalar fields from current metadata and preserves
 the existing tasks-only response contract. See the automatic discovery section
 in the linked spec. Historical schema reconstruction remains out of scope.

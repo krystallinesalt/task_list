@@ -98,3 +98,5 @@ Acceptance: new parent/task fields appear with saved diffs without code lists,
 restricted fields never leave the endpoint, and existing replay/layout still work.
 Cover discovery and exclusion on the server and new field rendering in the browser.
 Roll out through ordinary app deployment; reload forms after metadata changes.
+
+Automatic field discovery: [PR #11](https://github.com/krystallinesalt/task_list/pull/11).
