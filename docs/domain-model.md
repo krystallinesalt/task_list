@@ -73,7 +73,10 @@ handlers or history data. New objectives show save-first guidance.
 ## Objective change history
 
 The read-only Changes tab calls the objective controller's `get_changes` method.
-It returns a fixed projection of saved fields, task rows and permission-scoped
+It discovers readable scalar fields from current parent Details and task DocType
+metadata, including custom fields, excluding passwords, virtual/layout fields and fields masked for the reader.
+Deleted fields disappear from both current values and retained historical diffs.
+It returns a projection of saved fields, task rows and permission-scoped
 native Version diffs, in pages of 50. Further pages require the same objective
 modified timestamp. No unsaved form values, snapshots or write methods are used.
 The client reverses newer diffs for display, keyed by stable child-row names,

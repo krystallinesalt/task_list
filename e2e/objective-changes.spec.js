@@ -367,3 +367,82 @@ test("Changes configures shared native columns and preserves the selected save",
 		await page.evaluate(() => frappe.views.formview["Tasklist Objective"].frm.is_dirty())
 	).toBeFalsy();
 });
+
+test("Changes renders newly discovered parent and task fields", async ({ page }) => {
+	await page.route(`**/api/method/${method}**`, async (request) => {
+		const response = await request.fetch();
+		const body = await response.json();
+		const history = body.message;
+		history.current.fields.custom_summary = "New summary";
+		history.current.task_fields.push("custom_note");
+		for (const row of history.current.tasks) row.values.custom_note = "New note";
+		history.versions[0].changed.push({
+			field: "custom_summary",
+			before: "Old summary",
+			after: "New summary",
+		});
+		history.versions[0].rows[0].changed.push({
+			field: "custom_note",
+			before: "Old note",
+			after: "New note",
+		});
+		await request.fulfill({ response, json: body });
+	});
+	await page.goto(route.replace("#changes_tab", "#details_tab"));
+	await expect(page.locator('[data-fieldname="team"] input')).toHaveValue("Current Team");
+	await page.evaluate(() => {
+		const frm = frappe.views.formview["Tasklist Objective"].frm;
+		const parent = { fieldname: "custom_summary", label: "Summary", fieldtype: "Data" };
+		frm.meta.fields.splice(
+			frm.meta.fields.findIndex((df) => df.fieldname === "changes_tab"),
+			0,
+			parent
+		);
+		frm.fields_dict.custom_summary = { get_status: () => "Read" };
+		const grid = frm.fields_dict.tasks.grid;
+		const child = {
+			fieldname: "custom_note",
+			label: "Note",
+			fieldtype: "Data",
+			in_list_view: 1,
+		};
+		grid.docfields.push(child);
+		grid.visible_columns.push([child, 150]);
+	});
+	await page.getByRole("tab", { name: "Changes", exact: true }).click();
+	const changes = page.getByRole("tabpanel", { name: "Changes" });
+	await expect(
+		changes.locator('[data-history-field="custom_summary"] .history-before')
+	).toHaveText("Before: Old summary");
+	await expect(
+		changes.locator('[data-history-field="custom_summary"] .history-after')
+	).toHaveText("After: New summary");
+	await expect(
+		changes.locator(
+			'.history-row-edited .grid-static-col[data-history-field="custom_note"] .history-after'
+		)
+	).toHaveText("After: New note");
+});
+
+test("Changes keeps readable task columns when the selected save has no rows", async ({
+	page,
+}) => {
+	await page.route(`**/api/method/${method}**`, async (request) => {
+		const response = await request.fetch();
+		const body = await response.json();
+		body.message.current.tasks = [];
+		for (const version of body.message.versions) {
+			version.rows = [];
+			version.added = [];
+			version.removed = [];
+		}
+		await request.fulfill({ response, json: body });
+	});
+	await page.goto(route);
+	const changes = page.getByRole("tabpanel", { name: "Changes" });
+	await expect(changes.locator(".history-save-label")).toContainText("Save 2 of 2");
+	await expect(
+		changes.locator(".history-tasks .grid-heading-row .grid-static-col[data-fieldname]")
+	).toHaveCount(9);
+	await expect(changes.locator(".history-tasks .grid-body .grid-row")).toHaveCount(0);
+});

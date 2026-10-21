@@ -1,27 +1,16 @@
 # Copyright (c) 2026, Deepak Patel and contributors
 # For license information, please see license.txt
 
-"""Fixed, display-only projections of native objective history."""
+"""Metadata-driven, display-only projections of native objective history."""
 
 import json
-from datetime import date, datetime
+from datetime import date, datetime, time, timedelta
 
 import frappe
 from frappe import _
+from frappe.model import no_value_fields
 from frappe.utils import cstr, formatdate
 
-OBJECTIVE_FIELDS = ("objective", "team", "objective_type", "department", "status")
-TASK_FIELDS = (
-	"task",
-	"priority",
-	"type",
-	"person_responsible",
-	"start_date",
-	"end_date",
-	"action_plan",
-	"remarks",
-	"status",
-)
 PAGE_SIZE = 50
 
 
@@ -49,11 +38,14 @@ def read_history(objective, offset, modified):
 		limit=PAGE_SIZE + 1,
 		ignore_permissions=False,
 	).run(as_dict=True)
+	parent_fields = history_fields(doc.meta, details_only=True)
+	task_fields = history_fields(frappe.get_meta(doc.meta.get_field("tasks").options))
 	current = {
-		"fields": {field: display_value(field, doc.get(field)) for field in OBJECTIVE_FIELDS},
-		"tasks": [project_task(row.as_dict()) for row in doc.tasks],
+		"fields": {field: display_value(parent_fields[field], doc.get(field)) for field in parent_fields},
+		"task_fields": list(task_fields),
+		"tasks": [project_task(row.as_dict(), task_fields) for row in doc.tasks],
 	}
-	entries = [project_version(row) for row in versions[:PAGE_SIZE]]
+	entries = [project_version(row, parent_fields, task_fields) for row in versions[:PAGE_SIZE]]
 	entries = [entry for entry in entries if entry is not None]
 	resolve_staff_titles(current, entries)
 	return {
@@ -65,16 +57,37 @@ def read_history(objective, offset, modified):
 	}
 
 
-def project_version(row):
+def history_fields(meta, details_only=False):
+	permitted = set(
+		meta.get_permitted_fieldnames(
+			permission_type="read", parenttype="Tasklist Objective", with_virtual_fields=False
+		)
+	)
+	masked = {field.fieldname for field in meta.get_masked_fields(parenttype="Tasklist Objective")}
+	fields = {}
+	for field in meta.fields:
+		if details_only and field.fieldname == "changes_tab":
+			break
+		if (
+			field.fieldtype not in (*no_value_fields, "Password")
+			and not field.is_virtual
+			and field.fieldname not in masked
+			and (frappe.session.user == "Administrator" or field.fieldname in permitted)
+		):
+			fields[field.fieldname] = field
+	return fields
+
+
+def project_version(row, parent_fields, task_fields):
 	entry = {"id": row.name, "at": cstr(row.creation), "by": row.owner, "available": True}
 	try:
 		data = json.loads(row.data)
 		if not isinstance(data, dict):
 			raise ValueError("Invalid history object")
-		entry["changed"] = project_changes(data.get("changed", []), OBJECTIVE_FIELDS)
-		entry["added"] = project_rows(data.get("added", []))
-		entry["removed"] = project_rows(data.get("removed", []))
-		entry["rows"] = project_row_changes(data.get("row_changed", []))
+		entry["changed"] = project_changes(data.get("changed", []), parent_fields)
+		entry["added"] = project_rows(data.get("added", []), task_fields)
+		entry["removed"] = project_rows(data.get("removed", []), task_fields)
+		entry["rows"] = project_row_changes(data.get("row_changed", []), task_fields)
 		if not any(entry[key] for key in ("changed", "added", "removed", "rows")):
 			return None
 	except (ValueError, TypeError, KeyError):
@@ -94,8 +107,8 @@ def project_changes(items, allowed):
 			result.append(
 				{
 					"field": field,
-					"before": display_change(field, before),
-					"after": display_change(field, after),
+					"before": display_change(allowed[field], before),
+					"after": display_change(allowed[field], after),
 				}
 			)
 	return result
@@ -104,10 +117,10 @@ def project_changes(items, allowed):
 def display_change(field, value):
 	text = display_value(field, value)
 	# Native Small Text diffs contain formatter-generated line breaks, not raw values.
-	return text.replace("<br>", "\n") if field in ("action_plan", "remarks") else text
+	return text.replace("<br>", "\n") if field.fieldtype in ("Small Text", "Text", "Long Text") else text
 
 
-def project_rows(items):
+def project_rows(items, task_fields):
 	if not isinstance(items, list):
 		raise ValueError("Invalid row changes")
 	result = []
@@ -115,22 +128,22 @@ def project_rows(items):
 		if not isinstance(item, list) or len(item) != 2:
 			raise ValueError("Invalid row change")
 		if item[0] == "tasks":
-			result.append(project_task(item[1]))
+			result.append(project_task(item[1], task_fields))
 	return result
 
 
-def project_task(row):
+def project_task(row, task_fields):
 	if not isinstance(row, dict) or not isinstance(row.get("name"), str) or not row["name"]:
 		raise ValueError("Missing task identity")
 	position = row.get("idx")
 	return {
 		"id": row["name"],
 		"position": position if isinstance(position, int) else None,
-		"values": {field: display_value(field, row.get(field)) for field in TASK_FIELDS},
+		"values": {field: display_value(task_fields[field], row.get(field)) for field in task_fields},
 	}
 
 
-def project_row_changes(items):
+def project_row_changes(items, task_fields):
 	if not isinstance(items, list):
 		raise ValueError("Invalid task edits")
 	result = []
@@ -143,27 +156,29 @@ def project_row_changes(items):
 		row_id = item[2]
 		if not isinstance(row_id, str) or not row_id:
 			raise ValueError("Missing edited task identity")
-		changes = project_changes(item[3], TASK_FIELDS)
+		changes = project_changes(item[3], task_fields)
 		if changes:
 			result.append({"id": row_id, "changed": changes})
 	return result
 
 
 def display_value(field, value):
-	if field in ("start_date", "end_date") and isinstance(value, (date, datetime)):
+	if isinstance(value, (date, datetime, time, timedelta)):
+		if field.fieldtype != "Date":
+			return cstr(value)
 		return formatdate(value)
 	if value is not None and not isinstance(value, (str, int, float, bool)):
 		raise ValueError("History values must be scalar")
 	text = cstr(value)
 	# Added/removed rows use raw dates; field edits already contain formatted dates.
-	if field in ("start_date", "end_date") and len(text) == 10 and text[4:5] == "-" and text[7:8] == "-":
+	if field.fieldtype == "Date" and len(text) == 10 and text[4:5] == "-" and text[7:8] == "-":
 		return formatdate(text)
 	return text
 
 
 def resolve_staff_titles(current, entries):
 	rows = current["tasks"] + [row for entry in entries for key in ("added", "removed") for row in entry[key]]
-	names = {row["values"]["person_responsible"] for row in rows if row["values"]["person_responsible"]}
+	names = {row["values"]["person_responsible"] for row in rows if row["values"].get("person_responsible")}
 	if not names or not frappe.has_permission("Staff", "read"):
 		return
 	staff = frappe.qb.get_query(
@@ -174,5 +189,7 @@ def resolve_staff_titles(current, entries):
 	).run(as_dict=True)
 	titles = {cstr(row.name): row.full_name for row in staff}
 	for row in rows:
+		if "person_responsible" not in row["values"]:
+			continue
 		value = row["values"]["person_responsible"]
 		row["values"]["person_responsible"] = titles.get(value, value)
