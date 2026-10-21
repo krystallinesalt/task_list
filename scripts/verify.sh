@@ -79,6 +79,7 @@ run_lint() {
 	node --test "${APP_ROOT}/scripts/test_objective_history_model.cjs"
 
 	python3 "${APP_ROOT}/scripts/test_doc_links.py"
+	python3 "${APP_ROOT}/scripts/test_app_doc_links.py"
 	python3 "${APP_ROOT}/scripts/test_deny_rules.py"
 	python3 "${APP_ROOT}/scripts/test_workflow_concurrency.py" \
 		"${APP_ROOT}/.github/workflows/ci.yml" \
