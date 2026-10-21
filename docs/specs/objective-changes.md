@@ -8,7 +8,7 @@ loaded save to the newest, with earlier/later buttons and author/date labels.
 Changed cells show before and after; task additions/removals are distinguished
 by text and color. The native child grid follows Details column visibility,
 order and widths, with horizontal scrolling and read-only row details for all
-nine task fields. No custom expandable content is embedded in task cells. Task rows have no separate
+readable task fields. No custom expandable content is embedded in task cells. Task rows have no separate
 Change column; cell/row colours and accessible row labels identify change kind. Match Details field visibility,
 Team/Objective Type in the left column and Department/Status in the right.
 Use native control/grid spacing; edited child cells use the same background as
@@ -21,7 +21,7 @@ Activity remains the native comments/timeline surface.
 Use retained Frappe Version records only: no snapshots, rollback or writes.
 Read the saved objective, not unsaved form values. The controller endpoint
 validates runtime types, checks objective read access and Version read access,
-and returns a fixed projection of objective/task fields and normalized diffs.
+and returns a metadata-driven projection of readable objective/task fields and normalized diffs.
 Versions are ordered by creation/name descending in pages of 50; Older saves
 extends the slider. Additional pages require the same saved modified timestamp;
 a concurrent save requests a reload rather than mixing two histories.
@@ -52,7 +52,7 @@ and objectives without recorded changes have clear empty states.
 
 Build the schema/API/slider tracer slice first, then add complete replay and
 Details-like presentation. Server tests cover types, parent permissions,
-allowlists, paging/stale state, row diffs and corrupt history. Pure client tests
+field discovery and exclusions, paging/stale state, row diffs and corrupt history. Pure client tests
 cover replay, stable IDs and missing rows. Browser tests cover slider/keyboard
 navigation, highlighted objective/task changes, task addition/removal, empty
 states, escaped content, and unchanged live Details data. Run required lint,
@@ -83,3 +83,20 @@ keyboard row navigation. Disconnect rendering observation during decoration and
 on preview disposal so the component neither loops nor retains detached grids.
 
 Native presentation refinement: [PR #7](https://github.com/krystallinesalt/task_list/pull/7).
+
+## Automatic field discovery
+
+Derive scalar parent fields before the Changes tab and existing tasks-table fields
+from current DocType metadata, including custom fields. Preserve saved-history replay and add `current.task_fields` to describe readable
+task columns even when no rows exist; exclude layout, virtual, password and unreadable
+permission-level fields and fields masked for the reader on the server. Only projected child fields become preview
+controls. Format new Date and multiline text fields by type. No new child tables,
+schema snapshots, writes, dependencies or data migrations. Current metadata owns
+labels and layout; deleted fields and their retained diffs are omitted. Historical
+schema and values never recorded cannot be recovered.
+Acceptance: new parent/task fields appear with saved diffs without code lists,
+restricted fields never leave the endpoint, and existing replay/layout still work.
+Cover discovery and exclusion on the server and new field rendering in the browser.
+Roll out through ordinary app deployment; reload forms after metadata changes.
+
+Automatic field discovery: [PR #11](https://github.com/krystallinesalt/task_list/pull/11).

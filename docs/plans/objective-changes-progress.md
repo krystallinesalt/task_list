@@ -37,3 +37,14 @@ grid's dialog and refresh the isolated preview after its settings update, withou
 changing core, permissions or stored objective/task data. Browser coverage checks
 Update, reset, tab synchronization and persistence. Implementation complete locally
 on `codex/changes-configure-columns`, published as [PR #8](https://github.com/krystallinesalt/task_list/pull/8).
+
+Automatic field discovery is published as [PR #11](https://github.com/krystallinesalt/task_list/pull/11)
+from `codex/metadata-history-fields`.
+The API derives readable scalar fields from current metadata and preserves
+the existing tasks-only response contract. See the automatic discovery section
+in the linked spec. Historical schema reconstruction remains out of scope.
+
+Readable task column names accompany the projection so empty tables retain their
+layout. Browser fixture cleanup runs synchronously and clears orphaned links for
+its reserved objective names before reuse; this avoids queued deletion racing
+with a later test run when no worker is available.

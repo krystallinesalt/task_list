@@ -5,6 +5,8 @@ import os
 
 import frappe
 from frappe.desk.page.setup_wizard.setup_wizard import enable_setup_wizard_complete
+from frappe.model.delete_doc import delete_dynamic_links
+from frappe.tests.utils import toggle_test_mode
 
 from task_list.task_list.tests.factories import make_objective, make_staff, task_row
 
@@ -55,12 +57,26 @@ def setup():
 
 def cleanup():
 	check_test_site()
+	previous = frappe.in_test
+	try:
+		# Fixed fixture names are reused; linked history must disappear before reseeding.
+		toggle_test_mode(True)
+		cleanup_records()
+	finally:
+		toggle_test_mode(previous)
+
+
+def cleanup_records():
+	check_test_site()
 	for name in (OBJECTIVE, HISTORY_OBJECTIVE, EMPTY_OBJECTIVE):
 		if frappe.db.exists("Tasklist Objective", name):
 			objective = frappe.get_doc("Tasklist Objective", name)
 			if objective.department != "Browser QA":
 				frappe.throw("Refusing to remove an objective not owned by browser setup")
 			frappe.delete_doc("Tasklist Objective", name)
+		else:
+			# Recover linked artifacts left by earlier asynchronous fixture cleanup.
+			delete_dynamic_links("Tasklist Objective", name)
 	staff = frappe.qb.get_query(
 		"Staff",
 		fields=["name"],

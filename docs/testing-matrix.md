@@ -66,9 +66,11 @@ bootstrap must mark the Frappe app ready for Desk navigation.
 
 ## Objective Changes tab
 
-`tests/test_objective_history.py` covers native objective/task saves, fixed
+`tests/test_objective_history.py` covers native objective/task saves, metadata-driven
 projections, formatting and Staff titles, type validation before reads, objective
-permissions, empty/corrupt history, paging and stale modified timestamps.
+field discovery, deleted fields, masked fields and sensitive/permission-level
+exclusions, empty/corrupt history,
+paging and stale modified timestamps.
 `scripts/test_objective_history_model.cjs` covers replay, added/removed rows,
 stable task identities and unavailable history; it runs in the lint gate.
 `e2e/objective-changes.spec.js` covers slider/keyboard navigation, before/after
@@ -76,7 +78,8 @@ highlights, task additions/removals, escaped descriptions, empty/new objectives,
 late responses, Retry and preservation of saved Details data. Fixtures remain
 restricted to owned synthetic records on the exclusive test site.
 
-Changes browser assertions also cover native Layout/grid structure, Details
+Changes browser assertions also cover newly discovered parent/task fields, empty
+task-table columns, native Layout/grid structure, Details
 field visibility and column widths, horizontal scrolling, read-only row expansion,
 matching parent/child change colours, compact toolbar height and the notice
 below the preview. Native refresh, collapse, keyboard navigation and child-grid

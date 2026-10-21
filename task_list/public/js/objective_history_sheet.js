@@ -13,6 +13,7 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 			...snapshot.state.tasks.map((row) => ({ ...row, removed: false })),
 			...snapshot.revision.removed.map((row) => ({ ...row, removed: true })),
 		];
+		this.task_fields = new Set(snapshot.state.task_fields);
 		this.layout = new frappe.ui.form.Layout({
 			parent,
 			fields: this.fields(),
@@ -21,9 +22,9 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 		this.layout.make();
 		this.grid = this.layout.fields_dict.tasks.grid;
 		this.grid.static_rows = true;
-		this.grid.editable_fields = this.frm.fields_dict.tasks.grid.visible_columns.map(
-			([df]) => ({ fieldname: df.fieldname })
-		);
+		this.grid.editable_fields = this.frm.fields_dict.tasks.grid.visible_columns
+			.filter(([df]) => this.task_fields.has(df.fieldname))
+			.map(([df]) => ({ fieldname: df.fieldname }));
 		this.layout.refresh(snapshot.state.fields);
 		// Standalone grids have no form row-render hook; observe native redraws.
 		this.observer = new MutationObserver(() => this.decorate_rendered());
@@ -83,16 +84,18 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 			])
 		);
 
-		const fields = source.docfields.map((df) => ({
-			fieldname: df.fieldname,
-			label: df.label,
-			fieldtype: "Data",
-			reqd: df.reqd,
-			read_only: 1,
-			in_list_view: visible.has(df.fieldname) ? 1 : 0,
-			width: visible.get(df.fieldname)?.width,
-			sticky: visible.get(df.fieldname)?.sticky,
-		}));
+		const fields = source.docfields
+			.filter((df) => this.task_fields.has(df.fieldname))
+			.map((df) => ({
+				fieldname: df.fieldname,
+				label: df.label,
+				fieldtype: "Data",
+				reqd: df.reqd,
+				read_only: 1,
+				in_list_view: visible.has(df.fieldname) ? 1 : 0,
+				width: visible.get(df.fieldname)?.width,
+				sticky: visible.get(df.fieldname)?.sticky,
+			}));
 		return {
 			fieldname: "tasks",
 			label: original.label,

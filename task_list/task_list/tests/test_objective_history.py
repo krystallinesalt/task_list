@@ -108,6 +108,128 @@ class IntegrationTestObjectiveHistory(IntegrationTestCase):
 			result["versions"][0]["changed"], [{"field": "team", "before": "Before", "after": "After"}]
 		)
 
+	def test_new_metadata_fields_are_projected_without_field_lists(self):
+		parent = frappe.get_meta("Tasklist Objective")
+		child = frappe.get_meta("Tasklist Objective Task")
+		parent_field = frappe.get_doc(
+			{"doctype": "DocField", "fieldname": "custom_summary", "fieldtype": "Data"}
+		)
+		child_field = frappe.get_doc({"doctype": "DocField", "fieldname": "custom_due", "fieldtype": "Date"})
+		parent_fields = list(parent.fields)
+		parent_fields.insert(1, parent_field)
+		self.add_version(
+			{
+				"changed": [["custom_summary", "Old", "New"]],
+				"row_changed": [
+					["tasks", 0, self.objective.tasks[0].name, [["custom_due", "", "15-09-2026"]]]
+				],
+				"removed": [["tasks", {"name": "old-row", "custom_due": "2026-09-15"}]],
+			}
+		)
+		with (
+			patch.object(parent, "fields", parent_fields),
+			patch.object(child, "fields", [*child.fields, child_field]),
+		):
+			result = get_changes(self.objective.name)
+		self.assertIn("custom_summary", result["current"]["fields"])
+		self.assertIn("custom_due", result["current"]["tasks"][0]["values"])
+		self.assertIn("custom_due", result["current"]["task_fields"])
+		version = result["versions"][0]
+		self.assertEqual(version["changed"], [{"field": "custom_summary", "before": "Old", "after": "New"}])
+		self.assertEqual(version["rows"][0]["changed"][0]["field"], "custom_due")
+		self.assertEqual(version["removed"][0]["values"]["custom_due"], formatdate("2026-09-15"))
+
+	def test_deleted_fields_are_omitted_from_current_and_recorded_history(self):
+		parent = frappe.get_meta("Tasklist Objective")
+		child = frappe.get_meta("Tasklist Objective Task")
+		self.add_version(
+			{
+				"changed": [
+					["team", "deleted-parent-before", "deleted-parent-after"],
+					["objective", "Before", "After"],
+				],
+				"row_changed": [
+					[
+						"tasks",
+						0,
+						self.objective.tasks[0].name,
+						[
+							["remarks", "deleted-child-before", "deleted-child-after"],
+							["task", "Before", "After"],
+						],
+					]
+				],
+				"removed": [
+					["tasks", {"name": "old-row", "remarks": "deleted-child-value", "task": "Old task"}]
+				],
+			}
+		)
+		with (
+			patch.object(parent, "fields", [field for field in parent.fields if field.fieldname != "team"]),
+			patch.object(child, "fields", [field for field in child.fields if field.fieldname != "remarks"]),
+		):
+			result = get_changes(self.objective.name)
+		self.assertNotIn("team", result["current"]["fields"])
+		self.assertNotIn("remarks", result["current"]["task_fields"])
+		self.assertNotIn("remarks", result["current"]["tasks"][0]["values"])
+		self.assertNotIn("deleted-", json.dumps(result))
+		version = result["versions"][0]
+		self.assertEqual([change["field"] for change in version["changed"]], ["objective"])
+		self.assertEqual([change["field"] for change in version["rows"][0]["changed"]], ["task"])
+
+	def test_masked_fields_are_excluded_from_current_and_history_without_clearance(self):
+		parent = frappe.get_meta("Tasklist Objective")
+		child = frappe.get_meta("Tasklist Objective Task")
+		self.objective.team = "masked-parent-current"
+		self.objective.tasks[0].remarks = "masked-child-current"
+		self.objective.save(ignore_version=False)
+		self.add_version(
+			{
+				"changed": [
+					["team", "masked-parent-before", "masked-parent-after"],
+					["objective", "Before", "After"],
+				],
+				"removed": [["tasks", {"name": "old-row", "remarks": "masked-child-removed"}]],
+			}
+		)
+		with (
+			patch.object(parent, "get_masked_fields", return_value=[parent.get_field("team")]),
+			patch.object(child, "get_masked_fields", return_value=[child.get_field("remarks")]),
+		):
+			result = get_changes(self.objective.name)
+		self.assertNotIn("team", result["current"]["fields"])
+		self.assertNotIn("remarks", result["current"]["task_fields"])
+		self.assertNotIn("masked-", json.dumps(result))
+		with (
+			patch.object(parent, "get_masked_fields", return_value=[]),
+			patch.object(child, "get_masked_fields", return_value=[]),
+		):
+			cleared = get_changes(self.objective.name)
+		self.assertEqual(cleared["current"]["fields"]["team"], "masked-parent-current")
+		self.assertEqual(cleared["current"]["tasks"][0]["values"]["remarks"], "masked-child-current")
+
+	def test_discovery_excludes_sensitive_virtual_layout_and_restricted_fields(self):
+		from task_list.objective_history import history_fields
+
+		fields = [
+			frappe._dict(fieldname=name, fieldtype=kind, permlevel=level, is_virtual=virtual)
+			for name, kind, level, virtual in (
+				("ordinary", "Data", 0, False),
+				("secret", "Password", 0, False),
+				("restricted", "Data", 1, False),
+				("computed", "Data", 0, True),
+				("layout", "HTML", 0, False),
+				("nested", "Table", 0, False),
+			)
+		]
+		meta = frappe._dict(
+			fields=fields,
+			get_masked_fields=lambda **kwargs: [],
+			get_permitted_fieldnames=lambda **kwargs: ["ordinary", "secret", "computed", "layout", "nested"],
+		)
+		with patch.dict(frappe.session, user="reader@example.com"):
+			self.assertEqual(list(history_fields(meta)), ["ordinary"])
+
 	def test_corrupt_history_is_explicit_and_never_returned_raw(self):
 		for payload in ("not-json", "[]", '{"changed": "bad"}', '{"row_changed": [["tasks", 0, null, []]]}'):
 			self.add_version(payload)
@@ -121,6 +243,11 @@ class IntegrationTestObjectiveHistory(IntegrationTestCase):
 		result = get_changes(self.objective.name)
 		self.assertEqual(result["versions"], [])
 		self.assertEqual(result["modified"], cstr(self.objective.modified))
+
+	def test_empty_task_table_still_describes_readable_columns(self):
+		empty = get_changes(make_objective().name)
+		self.assertEqual(empty["current"]["tasks"], [])
+		self.assertIn("task", empty["current"]["task_fields"])
 
 	def test_objective_permission_is_checked_before_version_reads(self):
 		user = frappe.get_doc(
