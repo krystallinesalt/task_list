@@ -36,4 +36,4 @@ selected save, diff colours and read-only historical values. Reuse the Details
 grid's dialog and refresh the isolated preview after its settings update, without
 changing core, permissions or stored objective/task data. Browser coverage checks
 Update, reset, tab synchronization and persistence. Implementation complete locally
-on `codex/changes-configure-columns`; review and publication are authorized.
+on `codex/changes-configure-columns`, published as [PR #8](https://github.com/krystallinesalt/task_list/pull/8).
