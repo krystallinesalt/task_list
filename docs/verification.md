@@ -90,6 +90,11 @@ The CI Server job installs Chromium and runs the same gate after server tests.
 Failures retain Playwright traces/screenshots in ignored `test-results/`.
 
 
+The lint gate runs the canonical kit documentation checker and Task List
+coverage checks for README, recursive docs and required skill guidance.
+The canonical `scripts/test_doc_links.py` stays byte-identical to the kit pin
+in `skills.lock`; app-specific coverage belongs in `scripts/test_app_doc_links.py`.
+
 The lint gate also runs the pure client history replay tests with Node's built-in
 test runner (`yarn test:unit` runs them directly). New raw public assets require
 `bench build --app task_list` to link assets before local browser verification.

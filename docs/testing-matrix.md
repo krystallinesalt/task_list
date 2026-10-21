@@ -36,9 +36,11 @@ points. `tests/test_workspace.py` checks both report shortcuts.
 
 These run in `scripts/verify.sh lint`:
 
-- `scripts/test_doc_links.py`: relative links and anchors in `AGENTS.md`,
-  `README.md` and `docs/` resolve, and every skill in the _Read by task_ table
-  exists.
+- `scripts/test_doc_links.py`: canonical kit checks for relative links and anchors
+  in root/nested guidance and top-level docs, and skills named in _Read by task_.
+- `scripts/test_app_doc_links.py`: retains README and recursive `docs/` coverage
+  through kit helpers, requires _Read by task_ to name skills, and exercises
+  missing-file, missing-anchor and absent/empty-table failures.
 - `scripts/test_deny_rules.py`: every Codex deny prefix has a Claude Code deny
   rule.
 - `scripts/test_workflow_concurrency.py`: pull requests cancel superseded runs;
