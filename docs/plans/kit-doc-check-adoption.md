@@ -15,5 +15,5 @@ README/nested links and absent skill guidance fail; the shared copy matches its
 pin; lint and baseline-aware review pass. CI must pass before handoff. Recovery
 is a normal revert; no migration is needed.
 
-Status: implementation complete locally on `codex/bump-agent-kit-8ca864c`;
-review and publication are authorized.
+Status: implementation complete on `codex/bump-agent-kit-8ca864c`,
+published as [PR #9](https://github.com/krystallinesalt/task_list/pull/9).
