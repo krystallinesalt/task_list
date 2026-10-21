@@ -28,10 +28,14 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 		// Standalone grids have no form row-render hook; observe native redraws.
 		this.observer = new MutationObserver(() => this.decorate_rendered());
 		this.decorate_rendered();
+		this.source_grid = this.frm.fields_dict.tasks.grid;
+		this.on_columns_changed = () => this.view.select(this.view.index);
+		this.source_grid.wrapper.on("change.history-columns", this.on_columns_changed);
 	}
 
 	destroy() {
 		this.observer.disconnect();
+		this.source_grid.wrapper.off("change.history-columns", this.on_columns_changed);
 		for (const row of this.grid.grid_rows || []) {
 			if (row?.wrapper.hasClass("grid-row-open")) row.toggle_view(false);
 		}
@@ -73,7 +77,10 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 	table_field(original) {
 		const source = this.frm.fields_dict.tasks.grid;
 		const visible = new Map(
-			source.visible_columns.map(([df, width]) => [df.fieldname, width])
+			source.visible_columns.map(([df, width]) => [
+				df.fieldname,
+				{ width, sticky: df.sticky },
+			])
 		);
 
 		const fields = source.docfields.map((df) => ({
@@ -83,7 +90,8 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 			reqd: df.reqd,
 			read_only: 1,
 			in_list_view: visible.has(df.fieldname) ? 1 : 0,
-			width: visible.get(df.fieldname),
+			width: visible.get(df.fieldname)?.width,
+			sticky: visible.get(df.fieldname)?.sticky,
 		}));
 		return {
 			fieldname: "tasks",
@@ -126,6 +134,7 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 	}
 
 	decorate() {
+		this.configure_columns();
 		for (const [field, control] of Object.entries(this.layout.fields_dict)) {
 			if (!Object.hasOwn(this.snapshot.state.fields, field)) continue;
 			control.$wrapper.addClass("history-field").attr("data-history-field", field);
@@ -180,5 +189,19 @@ task_list.ObjectiveHistorySheet = class ObjectiveHistorySheet {
 				);
 			}
 		}
+	}
+
+	configure_columns() {
+		const cell = this.grid.header_row?.configure_columns_button;
+		if (!cell || cell.find("button").length) return;
+		// Use the real form's dialog so Frappe owns persistence and column options.
+		$("<button type='button' class='btn btn-link p-0'>")
+			.attr("aria-label", __("Configure Columns"))
+			.attr("title", __("Configure Columns"))
+			.html(frappe.utils.icon("settings", "sm", "", "filter: opacity(0.5)"))
+			.on("click", () =>
+				this.frm.fields_dict.tasks.grid.header_row.configure_dialog_for_columns_selector()
+			)
+			.appendTo(cell);
 	}
 };
